@@ -1,0 +1,260 @@
+{
+  "generated_at": "2026-06-08 17:17:40 +0800",
+  "platform": "macos",
+  "uname": "Darwin 24.6.0",
+  "script": "skills/scripts/refresh-tool-index.sh",
+  "tools": [
+    {
+      "name": "java",
+      "skill": "core-runtime",
+      "purpose": "Java runtime for jadx/apktool/Burp/Ghidra",
+      "available": true,
+      "path": "/opt/homebrew/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home/bin/java",
+      "version": "openjdk version \"17.0.18\" 2026-01-20",
+      "install_hint": "brew: brew install openjdk"
+    },
+    {
+      "name": "python3",
+      "skill": "core-runtime",
+      "purpose": "Python runtime for helper scripts and pipx tools",
+      "available": true,
+      "path": "/Users/umisonoda/PycharmProjects/cybertest/.venv/bin/python3",
+      "version": "Python 3.12.0",
+      "install_hint": "brew: brew install python; then pipx/venv"
+    },
+    {
+      "name": "pipx",
+      "skill": "core-runtime",
+      "purpose": "Isolated Python CLI installer",
+      "available": true,
+      "path": "/opt/homebrew/bin/pipx",
+      "version": "1.13.0",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "node",
+      "skill": "core-runtime",
+      "purpose": "Node.js runtime for MCP bridges",
+      "available": true,
+      "path": "/opt/homebrew/bin/node",
+      "version": "v26.0.0",
+      "install_hint": "brew/nvm: brew install node; or nvm"
+    },
+    {
+      "name": "npm",
+      "skill": "core-runtime",
+      "purpose": "Node package manager",
+      "available": true,
+      "path": "/opt/homebrew/bin/npm",
+      "version": "11.12.1",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "npx",
+      "skill": "core-runtime",
+      "purpose": "Run npm MCP packages",
+      "available": true,
+      "path": "/opt/homebrew/bin/npx",
+      "version": "11.12.1",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "jadx",
+      "skill": "apk-reverse",
+      "purpose": "APK Java/Kotlin decompiler",
+      "available": true,
+      "path": "/opt/homebrew/bin/jadx",
+      "version": "1.5.5",
+      "install_hint": "brew: brew install jadx"
+    },
+    {
+      "name": "apktool",
+      "skill": "apk-reverse",
+      "purpose": "APK decode and rebuild",
+      "available": true,
+      "path": "/opt/homebrew/bin/apktool",
+      "version": "3.0.2",
+      "install_hint": "brew: brew install apktool"
+    },
+    {
+      "name": "adb",
+      "skill": "apk-reverse",
+      "purpose": "Android device bridge",
+      "available": true,
+      "path": "/opt/homebrew/bin/adb",
+      "version": "Android Debug Bridge version 1.0.41",
+      "install_hint": "brew: brew install android-platform-tools"
+    },
+    {
+      "name": "frida",
+      "skill": "reverse-engineering",
+      "purpose": "Dynamic instrumentation CLI",
+      "available": true,
+      "path": "/Users/umisonoda/.local/bin/frida",
+      "version": "17.10.1",
+      "install_hint": "pipx: pipx install frida-tools"
+    },
+    {
+      "name": "frida-ps",
+      "skill": "reverse-engineering",
+      "purpose": "Frida process listing",
+      "available": true,
+      "path": "/Users/umisonoda/.local/bin/frida-ps",
+      "version": "17.10.1",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "r2",
+      "skill": "radare2",
+      "purpose": "radare2 CLI analysis",
+      "available": true,
+      "path": "/opt/homebrew/bin/r2",
+      "version": "radare2 6.1.6 +0 abi:107 @ darwin-arm_64",
+      "install_hint": "brew: brew install radare2"
+    },
+    {
+      "name": "rabin2",
+      "skill": "radare2",
+      "purpose": "Binary metadata extraction",
+      "available": true,
+      "path": "/opt/homebrew/bin/rabin2",
+      "version": "rabin2 6.1.6 +0 abi:107 @ darwin-arm_64",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "ghidra",
+      "skill": "reverse-engineering",
+      "purpose": "Ghidra reverse-engineering suite",
+      "available": false,
+      "path": null,
+      "version": null,
+      "install_hint": "brew: brew install ghidra or brew install --cask ghidra"
+    },
+    {
+      "name": "idapro",
+      "skill": "ida-reverse",
+      "purpose": "IDA Pro commercial reverse-engineering suite",
+      "available": false,
+      "path": null,
+      "version": null,
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "burpsuite",
+      "skill": "burp-mcp",
+      "purpose": "BurpSuite desktop application",
+      "available": false,
+      "path": null,
+      "version": null,
+      "install_hint": "brew cask/manual: brew install --cask burp-suite"
+    },
+    {
+      "name": "graphviz",
+      "skill": "diagram-generator",
+      "purpose": "Graphviz diagram rendering",
+      "available": true,
+      "path": "/opt/homebrew/bin/dot",
+      "version": "dot - graphviz version 15.0.0 (20260523.1842)",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "plantuml",
+      "skill": "diagram-generator",
+      "purpose": "PlantUML diagram rendering",
+      "available": true,
+      "path": "/opt/homebrew/bin/plantuml",
+      "version": "PlantUML version 1.2026.5 / e0f0ce5 [2026-05-27 17:39:27 UTC]",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "nmap",
+      "skill": "pentest-tools",
+      "purpose": "Network scanner",
+      "available": true,
+      "path": "/opt/homebrew/bin/nmap",
+      "version": "Nmap version 7.99 ( https://nmap.org )",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "sqlmap",
+      "skill": "pentest-tools",
+      "purpose": "SQL injection testing tool",
+      "available": true,
+      "path": "/opt/homebrew/bin/sqlmap",
+      "version": "1.10.6#stable",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "ffuf",
+      "skill": "pentest-tools",
+      "purpose": "Web fuzzer",
+      "available": true,
+      "path": "/opt/homebrew/bin/ffuf",
+      "version": "ffuf version: 2.1.0-dev",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "hashcat",
+      "skill": "pentest-tools",
+      "purpose": "Password recovery",
+      "available": true,
+      "path": "/opt/homebrew/bin/hashcat",
+      "version": "v7.1.2",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "nuclei",
+      "skill": "pentest-tools",
+      "purpose": "Template-based vulnerability scanner",
+      "available": true,
+      "path": "/opt/homebrew/bin/nuclei",
+      "version": "[\u001b[34mINF\u001b[0m] Nuclei Engine Version: v3.8.0",
+      "install_hint": "brew: brew install nuclei"
+    },
+    {
+      "name": "binwalk",
+      "skill": "firmware-pentest",
+      "purpose": "Firmware extraction and analysis",
+      "available": true,
+      "path": "/opt/homebrew/bin/binwalk",
+      "version": "binwalk 3.1.0",
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    },
+    {
+      "name": "seclists",
+      "skill": "pentest-tools",
+      "purpose": "Security wordlists",
+      "available": false,
+      "path": null,
+      "version": null,
+      "install_hint": "git clone https://github.com/danielmiessler/SecLists ~/tools/SecLists"
+    },
+    {
+      "name": "jshookmcp",
+      "skill": "js-reverse",
+      "purpose": "JS/CDP/Hook MCP runtime via npx",
+      "available": true,
+      "path": "/opt/homebrew/bin/npx",
+      "version": "11.12.1",
+      "install_hint": "npx: npx -y @jshookmcp/jshook@latest"
+    },
+    {
+      "name": "anything-analyzer",
+      "skill": "browser-automation",
+      "purpose": "Browser/HTTP analyzer MCP project",
+      "available": false,
+      "path": null,
+      "version": null,
+      "install_hint": "git clone + corepack enable + pnpm install + pnpm dev"
+    },
+    {
+      "name": "burp-mcp-full",
+      "skill": "burp-mcp",
+      "purpose": "Local Burp MCP extension and stdio bridge",
+      "available": false,
+      "path": null,
+      "version": null,
+      "install_hint": "see PLATFORMS.md and docs/platforms/macos.md"
+    }
+  ]
+}
