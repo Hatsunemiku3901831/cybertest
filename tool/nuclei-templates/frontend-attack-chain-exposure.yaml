@@ -1,0 +1,138 @@
+id: frontend-attack-chain-exposure
+
+info:
+  name: Frontend Static Asset Attack Chain Exposure
+  author: codex
+  severity: high
+  description: |
+    Detects high-signal frontend exposure patterns that repeatedly led to
+    attack chains in historical authorized tests: static bundles revealing API
+    hosts, broker credentials, cloud storage/STS material, client JWTs, camera
+    integration secrets, sensitive business routes, or embedded personal/order
+    sample data.
+  impact: |
+    A positive result is not a complete vulnerability proof by itself. It is a
+    prioritized attack-chain signal: validate with no-token, invalid-token, and
+    least-privilege read-only checks such as page=0&size=1, then stop once
+    impact is proven. Do not call write, export, queue read, cloud API, device
+    control, payment, SMS, or destructive endpoints from this template.
+  remediation: |
+    Remove secrets and sample data from public bundles, rotate exposed
+    credentials, move privileged API calls server-side, enforce backend
+    authorization on every API route, disable public object listing, and add
+    CI checks for secret and production-data leakage before release.
+  reference:
+    - https://docs.projectdiscovery.io/templates/introduction
+  classification:
+    cwe-id:
+      - CWE-200
+      - CWE-522
+      - CWE-798
+      - CWE-862
+  metadata:
+    max-request: 16
+    attack_chain: "frontend-bundle -> api/secret discovery -> read-only auth boundary validation"
+    decision_tree: |
+      1. If public HTML/JS contains only route names or variable names, treat as
+         intelligence and continue manual triage.
+      2. If public HTML/JS contains reusable broker/cloud/client/video secrets,
+         validate only the authentication boundary and permission metadata.
+      3. If public HTML/JS contains high-value API paths, verify with no-token,
+         invalid-token, and minimum-page read checks before any impact claim.
+      4. If public HTML/JS contains personal/order sample data, record bundle
+         URL/hash and field categories; do not bulk extract real records.
+      5. Stop after first high-impact proof and move to evidence/reporting.
+  tags: exposure,frontend,javascript,secrets,api,auth-bypass,attack-chain
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+      - "{{BaseURL}}/"
+      - "{{BaseURL}}/index.html"
+      - "{{BaseURL}}/login"
+      - "{{BaseURL}}/admin"
+      - "{{BaseURL}}/static/js/app.js"
+      - "{{BaseURL}}/static/js/main.js"
+      - "{{BaseURL}}/assets/index.js"
+      - "{{BaseURL}}/assets/app.js"
+      - "{{BaseURL}}/js/app.js"
+      - "{{BaseURL}}/js/main.js"
+
+    redirects: true
+    max-redirects: 2
+    stop-at-first-match: false
+
+    extractors:
+      - type: regex
+        name: js_path
+        part: body
+        group: 1
+        internal: true
+        regex:
+          - '<script[^>]+src=["''](\/[^"'']+\.(?:js|mjs)(?:\?[^"'']*)?)["'']'
+
+      - type: regex
+        name: api_or_integration_indicators
+        part: body
+        group: 1
+        regex:
+          - '["'']((?:\/api\/|\/openapi\/|\/swagger|\/actuator|\/druid|\/nacos|\/rabbitmq|\/stomp|\/ws|\/websocket)[^"'']{0,160})["'']'
+          - '["''](https?:\/\/[^"'']{1,160}(?:api|gateway|oss|obs|cos|rabbit|stomp|mqtt|video|camera|swagger|actuator)[^"'']{0,160})["'']'
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        name: frontend_or_static_asset
+        dsl:
+          - 'status_code == 200 && (contains(tolower(content_type), "javascript") || contains(tolower(content_type), "html") || contains(body, "__webpack") || contains(body, "webpackJsonp") || contains(body, "vite") || contains(body, "axios") || contains(body, "baseURL") || contains(body, "static/js") || contains(body, "/assets/"))'
+
+      - type: regex
+        name: high_signal_attack_chain_pattern
+        part: body
+        condition: or
+        regex:
+          - '(?i)(rabbitmq|stomp|amqp|mqtt|websocket|\/ws)[\s\S]{0,400}(username|userName|login|passcode|password|vhost|virtualHost)[\s\S]{0,240}["''][^"'']{6,}["'']'
+          - '(?i)(accessKeyId|access_key_id|accessKeySecret|secretAccessKey|securityToken|stsToken|getSts|tempUrl|oss|obs|cos)[\s\S]{0,400}(accessKeySecret|secretAccessKey|securityToken|stsToken|bucket|endpoint|tempUrl)'
+          - '(?i)(client[-_]?jwt|clientToken|Authorization|Bearer|token)[\s:=`"''\{]{0,40}eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}'
+          - '(?i)(appkey|appKey|app_id|client_id)[\s\S]{0,240}(appsecret|appSecret|secret|client_secret)[\s\S]{0,240}["''][A-Za-z0-9_\-]{12,}["'']'
+          - '(?i)(VideoWebPlugin|WebControl|camera|preview|ipPort|loginPwd|szPassword|szUsername|stream|playback)[\s\S]{0,400}(appkey|appsecret|secret|password|loginPwd|szPassword|ipPort)'
+          - '(?i)(baseURL|apiBase|apiHost|gateway|axios)[\s\S]{0,600}(\/api\/[^`"''\s<>{}]{0,180}(customer|tenant|message|capability|data_connector|route_api|swagger|actuator|sts|tempUrl|upload|export|download|order|address|wallet|pay|sms|captcha|user|admin))'
+          - '(?i)(phone|mobile|tel|idCard|identity|address|orderNo|reader|customer|手机号|身份证|收货|订单|读者|客户)[\s\S]{0,260}([0-9]{11}|[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})'
+
+  - method: GET
+    path:
+      - "{{BaseURL}}{{js_path}}"
+
+    redirects: true
+    max-redirects: 2
+    stop-at-first-match: false
+
+    extractors:
+      - type: regex
+        name: api_or_integration_indicators
+        part: body
+        group: 1
+        regex:
+          - '["'']((?:\/api\/|\/openapi\/|\/swagger|\/actuator|\/druid|\/nacos|\/rabbitmq|\/stomp|\/ws|\/websocket)[^"'']{0,160})["'']'
+          - '["''](https?:\/\/[^"'']{1,160}(?:api|gateway|oss|obs|cos|rabbit|stomp|mqtt|video|camera|swagger|actuator)[^"'']{0,160})["'']'
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        name: frontend_or_static_asset
+        dsl:
+          - 'status_code == 200 && (contains(tolower(content_type), "javascript") || contains(tolower(content_type), "html") || contains(body, "__webpack") || contains(body, "webpackJsonp") || contains(body, "vite") || contains(body, "axios") || contains(body, "baseURL") || contains(body, "static/js") || contains(body, "/assets/"))'
+
+      - type: regex
+        name: high_signal_attack_chain_pattern
+        part: body
+        condition: or
+        regex:
+          - '(?i)(rabbitmq|stomp|amqp|mqtt|websocket|\/ws)[\s\S]{0,400}(username|userName|login|passcode|password|vhost|virtualHost)[\s\S]{0,240}["''][^"'']{6,}["'']'
+          - '(?i)(accessKeyId|access_key_id|accessKeySecret|secretAccessKey|securityToken|stsToken|getSts|tempUrl|oss|obs|cos)[\s\S]{0,400}(accessKeySecret|secretAccessKey|securityToken|stsToken|bucket|endpoint|tempUrl)'
+          - '(?i)(client[-_]?jwt|clientToken|Authorization|Bearer|token)[\s:=`"''\{]{0,40}eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}'
+          - '(?i)(appkey|appKey|app_id|client_id)[\s\S]{0,240}(appsecret|appSecret|secret|client_secret)[\s\S]{0,240}["''][A-Za-z0-9_\-]{12,}["'']'
+          - '(?i)(VideoWebPlugin|WebControl|camera|preview|ipPort|loginPwd|szPassword|szUsername|stream|playback)[\s\S]{0,400}(appkey|appsecret|secret|password|loginPwd|szPassword|ipPort)'
+          - '(?i)(baseURL|apiBase|apiHost|gateway|axios)[\s\S]{0,600}(\/api\/[^`"''\s<>{}]{0,180}(customer|tenant|message|capability|data_connector|route_api|swagger|actuator|sts|tempUrl|upload|export|download|order|address|wallet|pay|sms|captcha|user|admin))'
+          - '(?i)(phone|mobile|tel|idCard|identity|address|orderNo|reader|customer|手机号|身份证|收货|订单|读者|客户)[\s\S]{0,260}([0-9]{11}|[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})'

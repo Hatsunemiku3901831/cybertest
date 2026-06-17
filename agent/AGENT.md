@@ -20,6 +20,7 @@ Codex/claude code 进入仓库后先读本文件，再按任务类型加载 `ski
 | 授权安全测试、Web/API 渗透测试、漏洞验证、资产探测、赏金/SRC、非生产高强度测试 | [skills/security-testing.md](skills/security-testing.md) |
 | 漏洞评级、风险定级、报告定级、漏洞归档定级                    | [skills/漏洞评级.md](skills/漏洞评级.md) |
 | 使用 HackSkills 做 Web/API 渗透测试路线规划、漏洞分流、深度专题方法论 | [skills/hack-skill.md](skills/hack-skill.md) |
+| SRC 信息收集、资产枚举、被动/主动侦察、资产建模、攻击面发现          | [skills/search.md](skills/search.md) |
 | 读取 security-testing.md 后需要细化候选队列、P0/P1/P2/P3、ROI 评分、材料需求识别 | [skills/bounty-candidate-triage.md](skills/bounty-candidate-triage.md) |
 | 读取 security-testing.md 后需要细化 OAuth/OIDC/SAML、SQLi、SSRF、IDOR/BOLA、文件链、网关、VHost、重定向、目录爆破、JS 分析闭合 Playbook | [skills/bounty-closure-playbooks.md](skills/bounty-closure-playbooks.md) |
 | 按 OWASP Top 10:2025 做 Web/API 风险建模、渗透测试思路 | [skills/OWASPtop10.md](skills/OWASPtop10.md) |
