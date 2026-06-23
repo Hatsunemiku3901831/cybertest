@@ -22,6 +22,20 @@ powershell -ExecutionPolicy Bypass -File .\install_windows.ps1
 powershell -ExecutionPolicy Bypass -File .\install_windows.ps1 -InstallChocolatey
 ```
 
+## macOS 一键安装
+
+macOS 用户使用 `require/` 目录下的 shell 脚本：
+
+```bash
+bash require/install_macos.sh
+```
+
+脚本会优先使用 Homebrew、`go install`、`pipx`/`pip` 安装可自动化处理的工具。需要同时安装 OWASP ZAP 这类 GUI/cask 组件时可运行：
+
+```bash
+bash require/install_macos.sh --with-casks
+```
+
 ## 基础运行环境
 
 | 依赖 | 用途 |
