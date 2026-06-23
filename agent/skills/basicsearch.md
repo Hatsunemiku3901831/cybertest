@@ -1,16 +1,20 @@
-# Skill: SRC 信息收集与资产枚举
+# Skill: 基础信息收集（弱模型专用）
 
 ## 1. Skill 目标
 
-本 Skill 用于指导 agent 在已授权的 SRC、企业安全测试、红队前置侦察或资产盘点场景中，执行信息收集与资产整理工作。
+本 Skill 是**弱模型**（deepseek/sonnet）专用的资产采集 Skill。只执行”采集”动作，不执行”分析”动作。
 
 本 Skill 覆盖两个阶段：
 
 被动信息收集：仅使用公开信息、搜索引擎、证书透明度、DNS 历史、空间测绘、公开代码仓库、应用商店、公开文档等来源，不直接访问或探测目标系统。
 
-主动信息收集：对已确认资产进行低风险存活探测、DNS 解析、HTTP 指纹识别、TLS 证书读取、页面标题提取、低强度端口识别、公开 JS 与接口路径提取等操作。
+主动信息收集：对已确认资产进行低风险存活探测、DNS 解析、HTTP 指纹识别、TLS 证书读取、页面标题提取、低强度端口识别、JS 文件下载等操作。
 
-本 Skill 的目标不是漏洞利用，而是形成准确、可追溯、可复核的资产清单，为后续分析或渗透测试提供基础。
+**核心原则：采集不分析。** 本 Skill 产出结构化数据包（见第 4 节），交给 `search-modeling.md`（强模型）进行深度分析。
+
+本 Skill 的目标不是漏洞利用，也不是攻击面建模，而是形成完整、可追溯、可复核的原始资产数据包。
+
+设计模型：deepseek（极低成本执行采集）→ 产出 JSON → opus（仅消费数据包做分析）
 
 ---
 
@@ -25,15 +29,14 @@ agent 不得执行以下行为：
 
 - 不得尝试登录、爆破、撞库、枚举账号密码。
 - 不得使用泄露的 token、cookie、AK/SK、密码、私钥或会话凭据。
-- 不得执行漏洞利用、命令执行、SQL 注入验证、文件读取、反序列化测试、SSRF 回连测试等攻击性操作。（在本阶段不执行）
+- 不得执行漏洞利用、命令执行、SQL 注入验证、文件读取、反序列化测试、SSRF 回连测试等攻击性操作。
 - 不得对登录、注册、找回密码、短信、邮件、支付等功能进行高频请求。
 - 不得进行 DoS、压力测试、大规模端口扫描或高并发目录扫描。
-- 不得对疑似第三方资产做深入测试，只能记录为“关联资产 / 需确认”。
+- 不得对疑似第三方资产做深入测试，只能记录为”关联资产 / 需确认”。
 
 ### 2.2 主动探测限制
 
 如允许主动探测，agent 应遵守：
-
 
 - 控制请求频率，默认单主机不超过 1 请求 / 秒。
 - 不进行参数 fuzz、漏洞 payload、身份绕过、批量提交表单。
@@ -41,71 +44,97 @@ agent 不得执行以下行为：
 - 对 401、403、登录页、管理页只记录，不尝试登录。
 - 对疑似敏感页面只做标题、状态码、响应头记录，不继续深入。
 
-### 2.3 并行建模原则
+### 2.3 弱模型行为边界
 
-agent 在收集每条资产时，必须同时完成三层记录，不得分阶段补记：
+本 Skill 使用弱模型。以下动作**故意不做**，留给强模型 (`search-modeling.md`)：
 
-| 层次 | 动作 | 示例 |
+| 不做 | 原因 | 谁做 |
 |------|------|------|
-| 资产层 | 记录资产属性（域名/IP/端口/标题/指纹） | `gygg.gztv.com` → nginx, Vue SPA |
-| 信任边界层 | 观察认证方式、网络隔离、证书复用、部署差异 | 独立 wildcard 证书 ≠ 主站证书 → 可能不同团队/外包 |
-| 攻击面标记 | 标注"这里可能有什么攻击面" | API 需签名 → 签名密钥可能在 JS 中 → 记录为 `sig_key_candidate` |
+| 不分析 JS 内容（不找密钥/签名/API 逻辑） | 需要密码学/语义推理 | 强模型 |
+| 不画攻击面关系图 | 需要多跳关联推理 | 强模型 |
+| 不评资产优先级（高/中/低） | 需要组合判断 | 强模型 |
+| 不做资产归属的 high/medium/low 判定 | 需要交叉验证推理 | 强模型 |
+| 不判断”这个 403 是不是内部系统” | 需要上下文推断 | 强模型 |
+| 不标注攻击面标记 (sig_key_candidate 等) | 需要攻击思维 | 强模型 |
 
-三条规则：
+**多采勿漏原则**：弱模型宁可多采、多存原文，也不要漏。漏掉的 JS 原文强模型无法凭空恢复。
 
-- 发现即标注：不能先收集完所有资产再回头补攻击面标记。
-- 标注不验证：标注只是假设（"可能有"），验证在渗透阶段。
-- 标注可废弃：渗透阶段证实标注无效的，正常归档不视为误报。
+- HTML 中所有 `<script src>` + 所有出现的 `.js` / `.map` 字面量路径 → 全部下载原文
+- 所有响应头 → 全量保留
+- 跳转链每跳 → 完整记录 URL + 状态码
+- 所有 HTTP 响应 body → 保存前 500 + 后 200 字符（尾部常含错误信息）
+
+### 2.4 TUN 模式 / 代理环境防护
+
+若本机开启 TUN/虚拟网卡/代理，系统 DNS 可能返回 Fake-IP。必须遵守：
+
+- DNS 解析公网域名优先用 `dig +tcp @1.1.1.1` 或 `dig +tcp @8.8.8.8`
+- 端口扫描只输入真实 IP 并禁用 DNS：`nmap -n -Pn <real_ip>`
+- Web 验证必须用固定 Host/SNI：`curl --resolve host:443:real_ip https://host/`
+- 发现 `198.18.0.0/15` 或全端口异常开放结果 → 立即标记为 `fake_ip_noise`，不写入资产
+- 所有从代理出口 IP 访问的 Web 响应，可能受 Geo/WAF 影响 → 标注 `tun_affected: true`
 
 ---
 
 ## 3. 输出要求
 
-agent 最终必须输出以下结果。
+本 Skill 输出两部分：供人阅读的资产清单 + 供强模型分析的数据包。
 
 ### 3.1 资产总览
 
-包含：
+包含（仅填计数，不评高价值）：
 
 - 主域数量
 - 子域数量
 - 存活 Web 数量
 - IP 数量
 - 端口服务数量
-- API 入口数量
+- 下载的 JS 文件数量
 - App / 小程序数量
 - 第三方关联资产数量
-- 高价值资产数量
 - 待确认归属资产数量
 
 ### 3.2 资产明细表
 
-每条资产至少包含以下字段：
+每条资产至少包含以下字段。标注 `[留空]` 的字段由强模型后续填写：
 
-json {   "asset_id": "唯一 ID",   "asset_type": "domain | subdomain | url | ip | port | app | mini_program | api | js | cloud | repo | third_party",   "asset": "资产值",   "root_domain": "根域名",   "url": "URL，如适用",   "ip": "IP，如适用",   "port": "端口，如适用",   "protocol": "http | https | tcp | udp | unknown",   "status": "alive | dead | redirect | forbidden | unauthorized | unknown",   "status_code": "HTTP 状态码，如适用",   "title": "页面标题，如适用",   "fingerprint": ["技术指纹"],   "cdn_or_waf": "CDN/WAF 信息",   "source": ["发现来源"],   "evidence": ["归属证据"],   "confidence": "high | medium | low",   "in_scope": "yes | no | unknown",   "risk_priority": "high | medium | low | unknown",   "notes": "备注" } 
+```json
+{
+  "asset_id": "唯一 ID",
+  "asset_type": "domain | subdomain | url | ip | port | app | mini_program | api | js | cloud | repo | third_party",
+  "asset": "资产值",
+  "root_domain": "根域名",
+  "url": "URL",
+  "ip": "IP",
+  "port": "端口",
+  "protocol": "http | https | tcp | udp | unknown",
+  "status": "alive | dead | redirect | forbidden | unauthorized | uncertain",
+  "status_code": "HTTP 状态码",
+  "title": "页面标题",
+  "headers": {"server": "", "set-cookie": "", "x-powered-by": ""},
+  "tls": {"cn": "", "san": [], "issuer": "", "not_after": ""},
+  "cdn_or_waf": "CDN/WAF 信息",
+  "source": ["发现来源"],
+  "evidence": ["归属证据"],
+  "confidence": "[留空]",
+  "in_scope": "yes | no | unknown",
+  "risk_priority": "[留空]",
+  "js_files": ["url1", "url2"],
+  "body_snippet": "前500+后200字符",
+  "tun_affected": false,
+  "notes": "备注"
+}
+```
 
-### 3.3 高价值资产清单
+注意：
+- `confidence` 留空 — 弱模型不做资产归属判定
+- `risk_priority` 留空 — 弱模型不做优先级评分
+- `status` 新增 `uncertain` — 无法确定死活的（可能是 WAF/TUN/限流导致）不要标 dead
+- `tun_affected` — TUN 模式下访问的资产，强模型需要知道可能受 Geo/WAF 影响
 
-至少列出：
+### 3.3 疑似越界资产清单
 
-- 管理后台
-- 登录中心
-- SSO / OAuth / Passport
-- API 网关
-- 开放平台
-- Swagger / OpenAPI / GraphQL
-- 测试环境 / 预发环境 / 灰度环境
-- 文件上传 / 下载 / 导出功能
-- 对象存储 / CDN 源
-- 运维系统
-- 监控系统
-- CI/CD 系统
-- 数据服务暴露面
-- 老旧系统或历史域名
-
-### 3.4 疑似越界资产清单
-
-必须单独列出：
+必须单独列出（弱模型能做：看 CNAME 指向第三方域名就标记）：
 
 - 第三方 SaaS
 - 供应商系统
@@ -116,7 +145,7 @@ json {   "asset_id": "唯一 ID",   "asset_type": "domain | subdomain | url | ip
 - 非官方域名
 - 仅品牌相似但无明确归属证据的站点
 
-### 3.5 证据归档
+### 3.4 证据归档
 
 每条关键资产尽量保存：
 
@@ -130,60 +159,77 @@ json {   "asset_id": "唯一 ID",   "asset_type": "domain | subdomain | url | ip
 - 发现时间
 - 归属判断依据
 
-### 3.6 攻击面关系图
+### 3.5 不做的事（留给 search-modeling.md）
 
-必须输出资产间的关系图，至少包含以下边类型：
+以下输出不在本 Skill 范围内：
 
-| 关系 | 含义 | 示例 |
-|------|------|------|
-| `resolves_to` | 域名解析到 IP | `gztv.com` → `119.32.4.92` |
-| `shares_cert` | 共享 TLS 证书 | `www`, `mail`, `dev` 共享 `*.gztv.com` 证书 |
-| `loads_js_from` | 页面加载 JS 资源 | `www.gztv.com` → `app.ecf2d1c9.js` |
-| `calls_api` | JS 调用后端 API | `app.js` → `/plus-cloud-manage-app/liveChannel/...` |
-| `redirects_to` | HTTP 重定向 | `oa.gztv.com` → `oa.gztv.com:7443` |
-| `cname_to` | DNS CNAME 指向 | `www.gztv.com` → `bdsa.cdnbuild.net` (百度 CDN) |
-| `contains_key` | JS/配置包含密钥 | `index-CpJWTnZ5.js` → `GZTVGYGGUCBYUN` |
-| `is_third_party` | 属于第三方 | `upload.gztv.com` CNAME → 深信服 CDN |
+- ❌ 高价值资产清单（需要组合评分，强模型做）
+- ❌ 攻击面关系图（需要多跳推理，强模型做）
+- ❌ 资产优先级评分（需要攻击路径判断，强模型做）
 
-JSON 格式：
+---
+
+## 4. 传给深度建模的数据包规范
+
+本 Skill 完成后，必须输出以下 JSON 给 `search-modeling.md` 使用。这是弱模型和强模型之间的唯一接口。
+
+### 4.1 数据包格式
 
 ```json
 {
-  "relationships": {
-    "nodes": [
-      {"id": "sub:gygg.gztv.com", "type": "subdomain", "label": "gygg.gztv.com", "attack_surface_tags": ["api_signature_required", "separate_cert"]},
-      {"id": "js:gygg-index", "type": "js_file", "label": "index-CpJWTnZ5.js"}
-    ],
-    "edges": [
-      {"from": "sub:gygg.gztv.com", "to": "js:gygg-index", "relation": "loads_js_from"},
-      {"from": "js:gygg-index", "to": "secret:GZTVGYGGUCBYUN", "relation": "contains_key"}
-    ]
+  "pass1_meta": {
+    "generated_at": "",
+    "model": "deepseek | sonnet",
+    "tun_mode": false,
+    "total_subdomains": 0,
+    "total_ips": 0,
+    "total_js_files": 0
+  },
+  "domains": [
+    {"domain": "", "registrar": "", "ns": [], "mx": [], "icp": ""}
+  ],
+  "subdomains": [
+    {
+      "domain": "",
+      "ip": "",
+      "cname": "",
+      "status_code": 0,
+      "title": "",
+      "headers": {},
+      "redirect_chain": [],
+      "tls": {},
+      "js_files": [],
+      "js_content": {"url1": "<raw js content>", "url2": "<raw js content>"},
+      "body_snippet": ""
+    }
+  ],
+  "ips": [
+    {"ip": "", "open_ports": [], "service_banners": {}}
+  ],
+  "certs": [
+    {"cn": "", "san": [], "issuer": "", "not_after": "", "covers_domains": []}
+  ],
+  "dns_records": {},
+  "historical_urls": [],
+  "warnings": {
+    "tun_affected": [],
+    "rate_limited": [],
+    "timeout": [],
+    "fake_ip_detected": []
   }
 }
 ```
 
+### 4.2 数据包质量规则
+
+- `js_content` 必须存 JS 原文，不是摘要。强模型需要看到混淆前的字面量字符串。
+- `body_snippet` 存前 500 + 后 200 字符。对 500/502/503 响应，额外保存全量 body（错误信息常在中间甚至尾部）。
+- `status` 为 `uncertain` 的资产不要丢弃。强模型可能结合其他信号判断死活。
+- `warnings` 必须如实记录。TUN 影响、限流、超时的资产，强模型需要知道数据可能不可靠。
+
 ---
 
-## 4. 全局执行流程
-
-agent 应按以下顺序执行。
-
-### 阶段 0：初始化与边界确认
-
-检查：
-
-- 是否存在明确目标。
-- 是否存在排除范围。
-- 是否允许主动探测。
-
-
-
-输出：
-
-- scope_summary
-- allowed_actions
-- blocked_actions
-- initial_keywords
+## 5. 全局执行流程
 
 ---
 
@@ -301,11 +347,10 @@ text admin manager console dashboard backend internal intranet sso auth login pa
 
 json {   "subdomain": "api.example.com",   "root_domain": "example.com",   "sources": ["ct_log", "search_engine", "js"],   "confidence": "high",   "notes": "多来源命中" } 
 
-**攻击面提示**：每发现一个子域名，同时记录：
-
-- 是否使用独立证书（→ 可能独立部署/不同团队）
-- 是否与已知 IP 重叠（→ 同一系统）或独立 IP（→ 新攻击面）
-- 命名是否暗示环境类型（dev/test/staging/uat/admin/internal）
+**注意**：记录以下原始信息（不分析含义，留给强模型）：
+- 证书 CN/SAN（是否与主域共享泛域名证书）
+- IP 是否与已知 IP 重叠
+- 子域名命名中的环境关键词（如 dev/test/staging）
 
 ---
 
@@ -454,11 +499,7 @@ text .env .env.example config.yml config.yaml application.yml application.proper
 
 - 标记为 sensitive_exposure_candidate，交由人工确认。
 
-**攻击面提示**：搜索到源码/配置时，除了记录资源本身，必须立即标注：
-
-- 暴露了哪些内部域名/IP（→ 内网拓扑碎片）
-- 暴露了哪些中间件/数据库连接信息（→ 基础设施攻击面）
-- 是否包含 CI/CD 配置（→ 供应链攻击路径）
+**注意**：搜索到源码/配置时，下载原文并保存在数据包中。不分析内容（由强模型分析）。标记文件类型和来源。
 
 ---
 
@@ -511,11 +552,7 @@ text .env .env.example config.yml config.yaml application.yml application.proper
 - 不使用真实用户数据。
 - 不进行接口攻击测试。
 
-**攻击面提示**：静态分析 APK/IPA 时，除了收集域名/API，同时标注：
-
-- 硬编码密钥/证书（→ 认证绕过候选）
-- 测试环境/内部环境域名（→ 通常防护较弱）
-- 第三方 SDK 初始化的 AppID/Key（→ 越权使用第三方资源）
+**注意**：APK/IPA 静态分析时，提取所有字符串/URL/域名原文，保存到数据包。不分析含义（由强模型完成）。
 
 ---
 
@@ -663,12 +700,12 @@ json {   "url": "https://api.example.com",   "alive": true,   "status_code": 200
 - error: 500 / 502 / 503 / 504
 - unknown: 无法判断
 
-**攻击面提示**：存活探测结果需要立即分类标注：
-
-- `403` + 非通用页面 → 标记为 `internal_system_candidate`
-- `401` + `WWW-Authenticate` → 记录认证类型（Basic/NTLM/Bearer）
-- `500/502/503` → 可能暴露内部错误信息/框架名/版本 → 记录为 `error_info_leak_candidate`
-- 跳转链中域名变化 → 记录完整跳转路径，标注信任边界
+**对非 200 响应的处理**（弱模型只记录，不分类标注）：
+- `403` → 记录，不判断是否为内部系统
+- `401` → 记录 `WWW-Authenticate` 头原文（不分析认证类型）
+- `500/502/503` → 保存全量 body（错误信息可能含框架/版本线索，由强模型提取）
+- 跳转链 → 完整记录每跳 URL + 状态码（不标注信任边界，强模型判断）
+- 所有非 200 标记 `status: uncertain`，不标 `dead`
 
 ---
 
@@ -812,226 +849,81 @@ text / robots.txt sitemap.xml favicon.ico manifest.json security.txt humans.txt 
 
 ---
 
-### 6.6 JS 文件与接口路径提取
+### 6.6 JS 文件下载
 
-对公开 Web 页面：
+弱模型只下载 JS 原文，不做内容分析。分析由强模型完成。
 
-收集：
+**下载范围**（多采勿漏）：
 
-- HTML 中引用的 JS 文件。
-- 异步加载 JS。
-- source map 引用。
-- 静态资源域名。
-- API Base URL。
-- 接口路径。
-- 环境变量名。
-- AppID / ClientID。
-- WebSocket 地址。
-- GraphQL 地址。
-- 上传 / 下载路径。
-- 第三方 SDK 地址。
+- HTML 中所有 `<script src="...">` 引用的 JS 文件
+- HTML 中所有出现的 `.js` / `.map` 字面量路径（含懒加载 chunk、webpack 动态 import）
+- source map 文件（若 URL 可访问则下载，不分析）
+- 第三方 CDN 的 JS 不下载（如 cdn.jsdelivr.net、unpkg.com），但记录 URL
 
-提取正则目标：
+**存储格式**：
 
-text https?://[a-zA-Z0-9._~:/?#@!$&'()*+,;=%-]+ [a-zA-Z0-9.-]+\.[a-zA-Z]{2,} \/api\/[a-zA-Z0-9._~:/?#@!$&'()*+,;=%-]* \/v[0-9]+\/[a-zA-Z0-9._~:/?#@!$&'()*+,;=%-]* wss?:\/\/[a-zA-Z0-9._~:/?#@!$&'()*+,;=%-]+ sourceMappingURL=.*\.map 
+在数据包 `subdomains[].js_content` 中，以 `{url: raw_content}` 格式存储 JS 原文。不截断、不摘要、不分析。
 
-敏感关键词：
+**下载规则**：
 
-text accessKey secretKey apiKey token Authorization Bearer client_secret private_key password bucket oss cos s3 endpoint internal debug test staging sandbox 
+- 单文件不超过 5MB（超过则截断并标注 `truncated: true`）
+- 超时 15 秒/文件
+- 下载失败的标记 `download_failed`，不阻塞其他文件
 
-处理规则：
+**禁止**：
 
-- 发现密钥只记录，不使用。
-- 发现 source map 只记录公开暴露情况，不还原和审计完整源码，除非授权明确允许。
-- 提取到的新域名回到被动归属判断流程。
-- 提取到的新接口标记为 api_candidate。
-
-**攻击面提示**：每提取到一个 API 端点或密钥，立即建立关系边：
-
-- `api_path` → 所属 JS 文件 → 所属域名（调用链溯源）
-- `key/secret` → 使用该密钥的 API（权限面评估）
-- `sourceMappingURL` → 标记为 `source_map_candidate`（即使不下载也记录存在性）
-- 不同 JS 文件中出现同一 API host → 标注为 `shared_backend`
+- 不分析 JS 内容（不找密钥、不还原 API 逻辑、不识别签名算法）
+- 不执行 JS
+- 不提取字符串、不过滤、不分类
+- 不建立任何关系边（那是强模型的事）
 
 ---
 
 ### 6.7 API 入口识别
 
-识别来源：
+弱模型只记录 API 入口的 URL 和发现来源，不分析认证方式/版本/业务模块/价值。
 
-- 子域名。
-- JS。
-- App。
-- 小程序。
-- 开放平台。
-- Swagger / OpenAPI。
-- GraphQL。
-- Postman Collection。
-- SDK 示例。
-- 文档页面。
+**记录内容**：
 
-记录：
+- API Base URL（从子域名、Swagger URL、JS 中出现的 API 路径字面量）
+- 发现来源（哪个 JS、哪个页面、哪个文档）
+- 是否需要认证才能调用（仅记录 HTTP 401/403 响应，不推断）
 
-- API Base URL
-- 接口路径
-- 方法
-- 认证方式
-- 版本
-- 业务模块
-- 是否需要登录
-- 是否有文档
-- 是否高价值
-- 来源
+**禁止**：
 
-高价值 API 类型：
-
-- 用户信息
-- 账号体系
-- 登录注册
-- 找回密码
-- 订单
-- 支付
-- 钱包
-- 发票
-- 合同
-- 文件上传
-- 文件下载
-- 导入导出
-- 权限管理
-- 组织架构
-- 消息通知
-- 后台管理
-- 商家管理
-- 开放平台授权
-
-禁止：
-
-- 不调用需要认证的接口。
-- 不遍历 ID。
-- 不测试越权。
-- 不批量请求数据。
-- 不发送修改类请求。
-- 不构造异常参数。
+- 不调用需要认证的接口
+- 不遍历 ID
+- 不测试越权
+- 不发送修改类请求
+- 不评"高价值"（那是强模型的事）
 
 ---
 
-## 7. 资产归属判断规则
+## 7. 资产归属判断规则（弱模型简化版）
 
-### 7.1 高可信归属
+弱模型不评 confidence (high/medium/low)。只做基础的归属标记：
 
-满足以下任意多项时可标记高可信：
+**明确属于目标**：SRC 范围明确包含、ICP 主体一致、官方页面直接链接。
 
-- SRC 范围明确包含。
-- 官方网站直接链接。
-- ICP 主体一致。
-- 证书组织一致。
-- DNS NS / TXT / CNAME 与目标一致。
-- 页面版权包含目标公司。
-- 登录页品牌与目标一致，且域名属于目标主域。
-- App 官方页面引用。
-- 开发者文档引用。
-- 多个独立来源交叉验证。
+**疑似第三方**：CNAME 指向非目标域名（如 `aligfwaf.com`、`sangfordns.com`、`qiye.163.com`）、证书组织不一致。
 
-### 7.2 中可信归属
+**无法判断**：标记为 `unknown`，留给强模型判断。
 
-满足：
-
-- 域名与品牌高度相关。
-- 证书或页面存在目标线索。
-- 搜索结果显示关联。
-- 历史 DNS 与目标 IP 相关。
-- 公开代码中引用。
-- 但缺少官方确认。
-
-### 7.3 低可信归属
-
-满足：
-
-- 仅名称相似。
-- 仅 logo 相似。
-- 仅第三方页面出现目标名。
-- 仅员工仓库出现。
-- 仅 CNAME 指向目标相关服务。
-- 归属主体不一致。
-
-### 7.4 处理策略
-
-- high: 可进入后续授权范围判断。
-- medium: 可继续被动交叉验证，主动探测前需要确认。
-- low: 不主动探测，仅记录。
-- unknown: 放入待确认清单。
+弱模型不写 `confidence` 字段，只写 `in_scope` (yes/no/unknown) 和 `notes` 记录判断依据。
 
 ---
 
 ## 8. 资产优先级评分
 
-agent 应为资产打优先级。
-
-### 8.1 高优先级
-
-包括：
-
-- 测试环境。
-- 预发环境。
-- 灰度环境。
-- 管理后台。
-- SSO / 登录中心。
-- API 网关。
-- 开放平台。
-- Swagger / OpenAPI / GraphQL。
-- 文件上传下载。
-- 对象存储绑定域名。
-- 运维平台。
-- 监控平台。
-- CI/CD 平台。
-- 老旧系统。
-- 历史域名但仍存活。
-- 暴露版本号的中间件。
-- 403 / 401 的疑似内部系统。
-- 错误页面暴露框架或服务名。
-
-### 8.2 中优先级
-
-包括：
-
-- 普通业务系统。
-- H5 活动页。
-- App API。
-- 小程序 API。
-- 商家端。
-- 开发者文档。
-- 帮助中心中暴露的接口。
-- 带登录的业务平台。
-- 非核心但存活的子域。
-
-### 8.3 低优先级
-
-包括：
-
-- 纯静态官网。
-- CDN 静态资源。
-- 图片域名。
-- 帮助文档。
-- 跳转页。
-- 第三方 SaaS 关联页。
-- 无业务功能页面。
+弱模型不评优先级。所有 `risk_priority` 字段留空。本节仅保留作为参考，实际评分由 `search-modeling.md`（强模型）根据攻击路径组合规则完成。
 
 ### 8.4 评分字段
 
-json {   "risk_priority": "high | medium | low | unknown",   "priority_reason": [     "test_environment",     "admin_login",     "api_documentation",     "file_upload",     "third_party_dependency"   ] } 
+弱模型不评分。所有 `risk_priority` 字段留空。评分由 `search-modeling.md`（强模型）根据攻击路径组合规则完成。
 
 ### 8.5 攻击路径组合评分
 
-高优先级资产的判断不仅看资产本身，还要看组合潜力。满足以下任一组合条件，单条资产可升一级优先级：
-
-| 组合条件 | 升权逻辑 |
-|----------|----------|
-| API 端点 + 同域 JS 含签名密钥 | 可构造合法请求 → 升为高 |
-| 403 页面 + 同 IP 存在 200 资产 | 可能有路径绕过 → 升为中 |
-| 独立证书子域 + 不同 IP | 独立部署系统 → 升一级 |
-| dev/test/staging 子域 + 存活 | 测试环境通常弱防护 → 升为高 |
-| CNAME 到第三方 + 第三方已知漏洞 | 供应链攻击路径 → 升为高 |
-| 硬编码 AppID + 对应 SDK 初始化代码 | 可越权使用第三方服务 → 升为中 |
+本 Skill 不执行。由 `search-modeling.md`（强模型）完成。
 
 ---
 
@@ -1081,10 +973,7 @@ json {   "risk_priority": "high | medium | low | unknown",   "priority_reason": 
 
 ### 9.4 关系图结构
 
-json {   "nodes": [     {       "id": "domain:example.com",       "type": "domain",       "label": "example.com"     },     {       "id": "subdomain:api.example.com",       "type": "subdomain",       "label": "api.example.com"     }   ],   "edges": [     {       "from": "domain:example.com",       "to": "subdomain:api.example.com",       "relation": "has_subdomain"     }   ] } 
-
----
-
+弱模型不画关系图，只输出扁平的资产数据包（见第 4 节）。关系图由 `search-modeling.md`（强模型）绘制。
 
 ---
 
@@ -1092,24 +981,18 @@ json {   "nodes": [     {       "id": "domain:example.com",       "type": "domai
 
 agent 完成信息收集后，必须检查：
 
-- 是否覆盖所有用户提供的主域。
-- 是否记录 SRC 范围和排除范围。
-- 是否区分被动来源和主动来源。
-- 是否识别并剔除泛解析假阳性。
-- 是否记录每个资产的发现来源。
-- 是否记录每个资产的归属证据。
-- 是否标记第三方资产。
-- 是否标记待确认资产。
-- 是否标记高价值资产。
-- 是否避免对越界资产主动探测。
-- 是否避免使用敏感凭据。
-- 是否避免漏洞利用和攻击性验证。
-- 是否形成资产关系。
-- 是否生成最终报告。
-- 是否输出机器可读结果。
-- 是否每条高价值资产都有对应的攻击面关系边。
-- 是否所有独立证书子域都标注了信任边界。
-- 是否所有提取到的密钥/AppID/Secret 都有使用场景标注。
+- 是否覆盖所有用户提供的主域
+- 是否记录 SRC 范围和排除范围
+- 是否区分被动来源和主动来源
+- 是否识别并剔除泛解析假阳性 (Fake-IP)
+- 是否记录每个资产的发现来源
+- 是否对非 200 响应使用 `uncertain` 而非 `dead`
+- 是否标记第三方 CNAME（CNAME 指向非目标域 → third_party）
+- 是否下载了所有可访问的 JS 文件原文
+- 是否避免使用敏感凭据
+- 是否避免漏洞利用和攻击性验证
+- 是否输出数据包 JSON（第 4 节格式）
+- 所有 `[留空]` 字段是否确实留空（没有猜测填写）
 
 ---
 
@@ -1182,37 +1065,30 @@ agent 对任何风险发现只做最小化验证。
 
 ## 15. 推荐执行顺序
 
-agent 应按以下顺序执行完整流程：
+弱模型只执行采集，不执行分析。按以下 12 步执行（原 20 步中砍掉需要分析能力的 8 步）：
 
-1. 读取目标和授权范围。
-2. 解析排除范围和测试限制。
-3. 建立品牌关键词、公司主体和产品线。
-4. 收集主域名。
-5. 被动枚举子域名。
-6. 收集 DNS、证书、历史解析。
-7. 搜索公开网页、文档和代码仓库。
-8. 收集 App、小程序、公众号、开放平台。
-9. 识别第三方与供应链资产。
-10. 进行资产归属判断。
-11. 对授权资产执行存活探测。
-12. 提取 HTTP 标题、响应头、证书、指纹。
-13. 如允许，执行低风险端口识别。
-14. 提取公开 JS、API 路径和文档入口。
-15. 识别高价值资产。
-16. 标记越界、第三方、待确认资产。
-17. 去重、归并、建立资产关系。
-18. 输出 Markdown 报告。
-19. 输出 JSON 资产结果。
-20. 输出后续人工确认事项。
+1. 读取目标和授权范围
+2. 解析排除范围和测试限制
+3. 建立品牌关键词、公司主体和产品线
+4. 收集主域名
+5. 被动枚举子域名
+6. 收集 DNS、证书、历史解析
+7. 搜索公开网页、文档和代码仓库（只下载原文，不分析）
+8. 收集 App、小程序、公众号、开放平台（只记录包名/ID/域名，不逆向）
+9. 识别第三方与供应链资产（只看 CNAME/证书差异，不做深度判断）
+10. 对授权资产执行存活探测（非 200 → 标 `uncertain`）
+11. 提取 HTTP 标题、响应头、证书、指纹（全量保留）
+12. 下载所有 JS 文件原文 + 记录 API URL 字面量（不分析内容）
+13. 如允许，执行低风险端口识别
+14. 输出 Markdown 资产清单 + 数据包 JSON（第 4 节格式）
 
-以上 20 步不是严格线性的。agent 在执行中发现以下信号时，应即时回溯前置步骤：
+**砍掉的步骤**（留给 search-modeling.md 强模型）：
+- ~~识别高价值资产~~ → 强模型
+- ~~资产归属 confidence 判定~~ → 强模型
+- ~~去重、归并、建立资产关系~~ → 强模型
+- ~~攻击面关系图~~ → 强模型
 
-- 发现新域名 → 回到步骤 4-5（主域名/子域名枚举）
-- 发现新 API host → 回到步骤 11-12（存活探测/指纹）
-- 发现密钥/凭据 → 回到步骤 14-15（JS 分析/高价值标注）
-- 发现新 IP 段 → 回到步骤 13（端口识别，如授权允许）
-
-目标不是按顺序完成 20 步，而是在所有信号收敛后覆盖所有 20 步。
+**迭代原则**：弱模型发现新域名/新 IP/新 API host 时，回到对应采集步骤继续采集。但不做回溯分析 — 新信号只是"还有更多东西要下载"。
 
 ---
 

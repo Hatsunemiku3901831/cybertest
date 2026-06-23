@@ -21,6 +21,7 @@ Codex/claude code 进入仓库后先读本文件，再按任务类型加载 `ski
 | 漏洞评级、风险定级、报告定级、漏洞归档定级                    | [skills/漏洞评级.md](skills/漏洞评级.md) |
 | 使用 HackSkills 做 Web/API 渗透测试路线规划、漏洞分流、深度专题方法论 | [skills/hack-skill.md](skills/hack-skill.md) |
 | SRC 信息收集、资产枚举、被动/主动侦察、资产建模、攻击面发现          | [skills/search.md](skills/search.md) |
+| 基础信息收集、资产采集（弱模型专用，只采集不分析，产出数据包交给强模型）         | [skills/basicsearch.md](skills/basicsearch.md) |
 | 读取 security-testing.md 后需要细化候选队列、P0/P1/P2/P3、ROI 评分、材料需求识别 | [skills/bounty-candidate-triage.md](skills/bounty-candidate-triage.md) |
 | 读取 security-testing.md 后需要细化 OAuth/OIDC/SAML、SQLi、SSRF、IDOR/BOLA、文件链、网关、VHost、重定向、目录爆破、JS 分析闭合 Playbook | [skills/bounty-closure-playbooks.md](skills/bounty-closure-playbooks.md) |
 | 按 OWASP Top 10:2025 做 Web/API 风险建模、渗透测试思路 | [skills/OWASPtop10.md](skills/OWASPtop10.md) |
@@ -39,6 +40,7 @@ Codex/claude code 进入仓库后先读本文件，再按任务类型加载 `ski
 - `primary_agent`、`pentester`、`coder` 等角色只作为工作模式参考，不代表要实际调用项目里的 LLM chain。
 - 如果任务需要“像 Pentester 一样做”，Codex 读取 `security-testing.md` 和 `agent-roles.md`，然后由 Codex 自己执行可控命令；其中 `security-testing.md` 是授权渗透测试的统一主入口，默认采用补天式深度挖掘循环，覆盖 Web/API 测试流程、动态信息收集、候选队列、ROI 分流、漏洞发现链、攻击链组合、影响边界停止规则和“近期跨案例经验固化”。
 - 如果任务是授权 Web/API 渗透测试，推荐加载顺序是 `security-testing.md` → `hack-skill.md` → 具体 HackSkills 专题；可参考 `hack-skill.md` 的推荐加载参考表选择对应 `hack-skills/skills/*/SKILL.md`，并建议在任务日志记录文件路径和触发原因。Web/API 和 SRC 任务默认套用 `security-testing.md` 做路径选择、误报过滤、证据闭环和停止判断。`webskill.md` 仅作为历史兼容文件保留，不再作为主路由默认入口。
+- 在渗透测试中，当模型完成资产建模（无论用 search.md 还是 basicsearch.md），必须读取 `search.md` 第 10 节（质量检查）和第 15 节（推荐执行顺序）进行自查，逐项确认覆盖度和缺失项，输出自查结论到任务日志。
 - 如果任务涉及漏洞评级、风险定级、漏洞归档定级或报告定级，必须读取 `漏洞评级.md`；所有漏洞评级标准统一以该文档为准。发现任何新漏洞、风险候选或准备把线索从候选升级为漏洞时，必须立即执行 `漏洞评级.md` 复核门禁，未完成复核不得写入正式报告、不得标记为已确认中危/高危。
 - 如果任务是漏洞赏金平台、SRC、补天项目、厂商授权赏金挖掘或普通授权渗透测试，统一读取 `security-testing.md`；补天式深度挖掘、候选队列、P0/P1/P2/P3、ROI 和材料阻塞状态已并入该主入口。需要更细的候选评分或漏洞类型闭合时，再按 `security-testing.md` 指示读取 `bounty-candidate-triage.md` 和 `bounty-closure-playbooks.md`。`bounty-deep-dig.md` 仅作为历史兼容文件保留，不再作为主路由入口。
 - 如果任务明确要求高危优先、成果导向、快速找高影响漏洞或“至少挖一个高危”，读取 `aggressive-high-impact.md`。

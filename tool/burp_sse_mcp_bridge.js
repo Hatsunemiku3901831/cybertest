@@ -13,6 +13,10 @@ const baseUrl = `http://${host}:${port}`;
 
 let postPath = null;
 let sseReadyResolve;
+let sseReq = null;
+let sseRes = null;
+let rl = null;
+let shuttingDown = false;
 const sseReady = new Promise((resolve) => {
   sseReadyResolve = resolve;
 });
@@ -23,6 +27,19 @@ function log(message) {
 
 function writeJson(value) {
   process.stdout.write(`${JSON.stringify(value)}\n`);
+}
+
+function shutdown(reason, code = 0) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  if (reason) log(reason);
+  if (sseReq) sseReq.destroy();
+  if (sseRes) sseRes.destroy();
+  if (rl) {
+    rl.removeAllListeners("close");
+    rl.close();
+  }
+  process.exit(code);
 }
 
 function postJson(path, payload) {
@@ -62,9 +79,10 @@ function postJson(path, payload) {
 
 function connectSse() {
   const req = http.get(`${baseUrl}/`, (res) => {
+    sseRes = res;
     if (res.statusCode !== 200) {
       log(`SSE endpoint returned HTTP ${res.statusCode}`);
-      process.exitCode = 1;
+      shutdown("SSE connection failed", 1);
       return;
     }
 
@@ -111,20 +129,23 @@ function connectSse() {
     });
 
     res.on("end", () => {
-      log("SSE connection closed");
-      process.exitCode = 1;
+      shutdown("SSE connection closed", 1);
     });
   });
 
+  sseReq = req;
   req.on("error", (err) => {
-    log(`cannot connect to ${baseUrl}/: ${err.message}`);
-    process.exitCode = 1;
+    if (!shuttingDown) shutdown(`cannot connect to ${baseUrl}/: ${err.message}`, 1);
   });
 }
 
 connectSse();
 
-const rl = readline.createInterface({ input: process.stdin });
+rl = readline.createInterface({ input: process.stdin });
+rl.on("close", () => shutdown("stdin closed"));
+process.on("SIGINT", () => shutdown("received SIGINT"));
+process.on("SIGTERM", () => shutdown("received SIGTERM"));
+
 rl.on("line", async (line) => {
   const trimmed = line.trim();
   if (!trimmed) return;

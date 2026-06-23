@@ -9,7 +9,7 @@
 #    - master:   顶层路由 (只有 hack)
 #    - category: 分类入口 (xxx-sec / 检索类路由)
 #    - deep:     具体攻击主题
-# 5. 分类内的 skills 顺序与 README.md 中各表保持一致, 便于 grep 对照
+# 5. 分类内的 skills 顺序与 说明.md 中各表保持一致, 便于 grep 对照
 
 categories:
   - id: recon
