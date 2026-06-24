@@ -66,6 +66,8 @@ Windows：运行require目录里的install_windows.cmd
 1. cd进项目文件夹内，或使用IDE打开该项目
 2. 使用codex或者claude code，直接使用自然语言提出需求即可，codex或者claudecode将会按目标执行
 
+强烈建议使用/goal 来跑
+
 
 ### 5. 使用常用工具
 
