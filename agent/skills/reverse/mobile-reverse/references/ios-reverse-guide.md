@@ -5,8 +5,8 @@
 ```bash
 # 从 App Store 下载
 ipatool search "Target App"
-ipatool purchase -b com.target.app
-ipatool download -b com.target.app -o app.ipa
+ipatool purchase -b com.example.app
+ipatool download -b com.example.app -o app.ipa
 
 # 从设备提取已安装应用
 # 越狱设备
@@ -14,7 +14,7 @@ scp root@device:/private/var/containers/Bundle/Application/*/Target.app .
 
 # 解密（App Store 二进制为加密 FAT 格式）
 # frida-ios-dump（推荐）
-python3 dump.py com.target.app -o decrypted.ipa
+python3 dump.py com.example.app -o decrypted.ipa
 
 # Clutch
 Clutch -i  # 列出已安装

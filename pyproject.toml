@@ -1,0 +1,11 @@
+[project]
+name = "cybertest-workspace"
+version = "0.1.0"
+description = "Engineering workspace for authorized security testing workflows"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.cybertest.tests]
+framework = "unittest"
+start-directory = "tests"
+pattern = "test_*.py"

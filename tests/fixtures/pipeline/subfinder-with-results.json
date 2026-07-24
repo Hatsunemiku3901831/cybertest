@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "subdomains": [
+    {"host": "api.example.test"},
+    {"host": "www.example.test"},
+    {"host": "api.example.test"}
+  ]
+}

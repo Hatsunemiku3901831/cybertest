@@ -6,7 +6,7 @@
 
 - 先按本文件路由到 `agent/skills/reverse/` 下的具体子 Skill，不要一次性加载全部逆向模块。
 - 不执行 `reverse-skill` 的全局注入、跨项目配置写入、强制社区贡献或强制自动安装规则。
-- 工具缺失时先读取 `reverse/tool-index.template.md` 或生成本地 `reverse/tool-index.md`；需要安装大型工具、GUI 工具或联网下载时，先向用户说明最小命令和影响。
+- 工具缺失时先读取 `../capabilities/manifest.yaml` 并运行 `../../tool/detect_capabilities.py`；逆向 CLI 的补充探测可生成本地 `reverse/tool-index.md`。需要安装大型工具、GUI 工具或联网下载时，先向用户说明最小命令和影响。
 - 样本分析、PoC、pwn、补丁差分和漏洞验证只在用户自有、CTF/靶场、授权测试或明确许可的样本/目标内执行。
 - 单次任务临时脚本仍按 Cybertest 规则放入 `temporarytool/` 或对应任务目录的 `temporarytool/`。
 - 逆向、固件、恶意样本、pwn 任务若属于授权安全测试、漏洞验证、资产探测或目标信息收集，应按 `agent/AGENT.md` 创建或选定 `tasks/` 归档目录。
@@ -28,20 +28,35 @@
 
 ## 工具索引
 
-第一阶段只导入工具索引模板和刷新脚本，不自动安装工具。
+工具索引脚本只做本地探测，不自动安装工具。跨任务稳定事实使用 capability ID；本地生成索引仅作当前机器缓存，不提交 Git。
 
 ```bash
 bash agent/skills/reverse/scripts/refresh-tool-index.sh
 ```
 
-生成或维护的索引应位于：
+本地生成索引默认位于：
 
 ```text
 agent/skills/reverse/tool-index.md
 agent/skills/reverse/tool-index.json
 ```
 
-如果导入脚本仍假设 `reverse-skill/skills/` 为根目录，优先小改脚本的根路径推导逻辑；不要把本机绝对路径或个人路径硬编码进 Skill 文档。
+索引只记录命令或 provider 标识，不记录本机绝对路径。若导入脚本仍假设 `reverse-skill/skills/` 为根目录，优先小改脚本的根路径推导逻辑；不要把个人路径硬编码进 Skill 文档。
+
+## 能力探测与显式安装
+
+统一入口默认只读探测，并同时复用 `require/profiles.json` 的 `reverse` profile
+和 Agent capability detector：
+
+```bash
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run jadx apktool r2
+```
+
+只有显式 `--install` 才会把核心 reverse profile 委托给平台注册的安装器。
+MCP 注册还必须显式使用 `--apply --mcp-config <file>`；HTTP provider 的 URL
+来自环境变量或运行时发现，不设固定端口。脚本不会默认刷新索引、启动服务或写入
+Claude、Codex 等客户端的全局配置。
 
 ## 路由补充
 

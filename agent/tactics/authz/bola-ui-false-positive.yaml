@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0",
+  "id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+  "version": 1,
+  "title": "真实 UI 与非空自身基线过滤 BOLA 误报",
+  "summary": "先确认真实选择器、权威账号到对象映射和非空 self 基线，再执行 A/B 对象差分。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["web", "api", "spa", "admin"],
+    "technologies": ["rest", "graphql", "browser"],
+    "endpoint_traits": ["object-detail", "project-switch", "tenant-selector"],
+    "observed_signals": [
+      "object_id",
+      "default_project",
+      "empty_self_response",
+      "ui_selector",
+      "cross_account_object"
+    ],
+    "business_objects": ["project", "tenant", "organization", "order", "member", "file"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["user_to_user", "tenant_to_tenant", "organization_to_organization"],
+    "evidence_stages": ["signal", "route", "handler", "business_logic", "object_read"]
+  },
+  "control_gap": {
+    "category": "authorization",
+    "operation_type": "read",
+    "trust_boundary": "principal_to_object",
+    "expected_controls": [
+      "object_ownership_check",
+      "tenant_scope_check",
+      "authoritative_principal_mapping"
+    ],
+    "suspected_missing_controls": [
+      "object_ownership_check",
+      "tenant_scope_check"
+    ]
+  },
+  "prerequisites": [
+    "两个受控且权限相当的账号。",
+    "每个账号至少一个由真实 UI 可见的非空自有对象。"
+  ],
+  "material_requirements": [
+    {
+      "id": "controlled_user_a",
+      "description": "受控低权限账号 A",
+      "required": true
+    },
+    {
+      "id": "controlled_user_b",
+      "description": "受控低权限账号 B",
+      "required": true
+    },
+    {
+      "id": "nonempty_self_object",
+      "description": "由真实 UI 和权威映射确认的非空自身对象",
+      "required": true
+    }
+  ],
+  "request_matrix": [
+    {
+      "id": "user-a-self",
+      "role": "positive_control",
+      "description": "账号 A 读取由真实 UI 选择的 A 自有对象，建立非空基线。"
+    },
+    {
+      "id": "user-b-self",
+      "role": "positive_control",
+      "description": "账号 B 读取由真实 UI 选择的 B 自有对象，建立非空基线。"
+    },
+    {
+      "id": "fake-object",
+      "role": "negative_control",
+      "description": "读取不存在的同形对象 ID，识别空结果和统一错误语义。"
+    },
+    {
+      "id": "user-a-to-b",
+      "role": "candidate_probe",
+      "description": "账号 A 仅替换对象 ID 为 B 的受控对象。"
+    },
+    {
+      "id": "user-b-to-a",
+      "role": "candidate_probe",
+      "description": "必要时用反向受控差分复核边界。"
+    }
+  ],
+  "expected_observations": [
+    "self 基线必须非空且与真实 UI、账号和对象权威映射一致。",
+    "跨账号响应必须与不存在对象负控可区分。",
+    "只有读取到目标受控对象的稳定特征才支持 BOLA。"
+  ],
+  "evidence_invariants": [
+    "跨账号请求只替换对象 ID，不改变会话、租户选择器或其他参数。",
+    "分别记录 self、fake-object 和 cross-account 三类响应。",
+    "只保存对象类型、长度和受控 canary，不保存真实业务原值。"
+  ],
+  "false_positive_filters": [
+    "默认项目、默认租户或缓存选择器不等于账号授权边界。",
+    "self 为空时，跨对象也为空不能证明授权。",
+    "公开档案或公共目录字段不得按私有对象泄露评级。",
+    "响应 200 但对象为空或来自 SPA fallback 时不得确认。"
+  ],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "zero_raw_value",
+  "readonly_fallback": false,
+  "stop_conditions": [
+    "首次稳定读取一个受控跨账号对象后停止扩大。",
+    "self 基线为空、映射不权威或 UI 选择器不稳定时停止。",
+    "出现非受控对象或真实个人信息前停止。"
+  ],
+  "rollback": {
+    "required": false,
+    "steps": []
+  },
+  "root_cause_family": "broken_object_level_authorization",
+  "affected_instance_key_fields": [
+    "scheme_host_port",
+    "http_method",
+    "route_template",
+    "business_object",
+    "tenant_scope"
+  ],
+  "rating_boundary": "仅对已证明的受控跨账号对象读取评级；默认项目和空结果只作为误报边界。",
+  "do_not_overclaim": "不得把对象 ID 可控、默认项目、空数组或公开档案写成已证明跨租户数据泄露。",
+  "reopen_conditions": [
+    "取得两个受控账号和各自非空对象。",
+    "取得权威账号到租户或对象映射。",
+    "真实 UI 暴露新的对象选择器。"
+  ],
+  "required_capabilities": [
+    {
+      "id": "browser.interactive",
+      "required": true,
+      "fallbacks": ["manual.browser_evidence_plan"]
+    },
+    {
+      "id": "http.replay",
+      "required": true,
+      "fallbacks": ["cli.http"]
+    }
+  ],
+  "source_cases": [
+    "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": [
+    "self_baseline_empty",
+    "public_object_confirmed",
+    "cross_account_matches_fake_object"
+  ],
+  "next_discriminating_action": "先在真实 UI 中为两个受控账号建立非空 self 对象与权威映射。",
+  "reroute_triggers": [
+    "self 基线为空或默认项目变化。",
+    "跨账号响应与不存在对象负控同形。",
+    "对象被确认属于公开档案或公共目录。"
+  ],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

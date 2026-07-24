@@ -2,6 +2,8 @@
 
 本文件用于 Codex 在项目内生成可交接的任务文档和资产文档。触发场景包括用户要求“生成交接文档”、“接手文档”、“接手说明”、“资产文档”、“资产信息文档”、“资产清单”、“任务日志”、“漏洞归档”，或要求新窗口/别的 Agent/其它 AI 快速接手当前任务。
 
+证据保存、敏感字段、报告引用和匿名化统一遵循 [`../policies/evidence-data-handling.md`](../policies/evidence-data-handling.md)。本文件定义文档结构，不另设平行的数据处理规则。
+
 ## 输出目标
 
 默认生成或更新一个可接手归档包，除非用户明确只要其中一种：
@@ -45,6 +47,7 @@ tasks/YYYY-MM-DD-HHMM-short-task-name/
     asset-inventory.json
     vulnerability-archive.json
   evidence/
+    restricted/
     http/
     screenshots/
     scan/
@@ -65,7 +68,7 @@ tasks/YYYY-MM-DD-HHMM-short-task-name/
 - `vulnerability-archive.md` 是唯一主漏洞/风险总账；结构化风险同步到 `outputs/vulnerability-archive.json`。
 - 所有漏洞/风险条目必须按 `agent/skills/漏洞评级.md` 写入 `rating_review`；缺少评级复核的条目只能作为候选、信息项或受限未验证，不得写入有效中危/高危。
 - `outputs/agent-handoff-pentest-status.md` 是唯一新窗口/其它 AI 接手入口。
-- 原始证据按类型写入 `evidence/` 子目录，文件名使用 `YYYYMMDD-HHMMSS_asset_short-purpose.ext`，避免空格、个人用户名、主机名、个人路径或其它测试人员标识。
+- 原始证据按类型写入 `evidence/` 子目录；含可重放秘密或完整业务值的证据进入 `evidence/restricted/`。文件名使用 `YYYYMMDD-HHMMSS_asset_short-purpose.ext`，避免空格、个人用户名、主机名、个人路径或其它测试人员标识。
 - 任务专用临时脚本放入 `temporarytool/`；可复用脚本才考虑提升到仓库 `tool/` 并在 `agent/AGENT.md` 注册。
 
 新窗口接手读取顺序：
@@ -141,6 +144,62 @@ tasks/YYYY-MM-DD-HHMM-short-task-name/
 - 未执行哪些敏感动作。
 - 哪些结论不能扩大表述。
 
+## 安全测试交接文档中的 Mermaid 攻击面拓扑图
+
+`outputs/agent-handoff-pentest-status.md` 必须包含一张 **Mermaid 攻击面拓扑图**，置于 `## 当前风险索引` 上方。目的：接手 AI 通过结构化 DSL 秒级解析攻击面全景和阻塞点，无需线性通读全文。
+
+### 节点命名规范（机读优先）
+
+- 节点 ID 使用业务含义的短横线命名，如 `bc003`、`jz_h5`、`openapi`，不使用 A/B/C 无意义 ID
+- 方框 `[]` = 资产/入口/候选
+- 菱形 `{}` = 阻塞点，内部以 `❓` 前缀标注缺失材料
+- 圆角 `()` = 信息项/已归档
+- 实线 `-->` = 已验证链路
+- 虚线 `-.->` = 未验证/降级链路
+- 粗线 `==>` = 拿到材料后优先验证序列
+
+### 模板
+
+```mermaid
+flowchart LR
+  subgraph 入口[Web/API 入口]
+    openapi[openapi.example.invalid]
+    open[open.example.invalid]
+    user[user.example.invalid]
+  end
+
+  subgraph 深度[深度发现]
+    jz[JZ H5/JS 加密材料]
+    apk[JZ APK 签名算法]
+    aiim[AI IM 凭据型 CORS]
+  end
+
+  subgraph 阻塞[材料阻塞]
+    bc003{❓BLOCKED-003<br/>开放平台写接口<br/>缺低权限账号}
+    bc010{❓BLOCKED-010<br/>OpenAPI 签名边界<br/>缺 AppKey/Secret}
+    bc013{❓BLOCKED-013<br/>JZ 对象越权<br/>缺 A/B 账号}
+    bc015{❓BLOCKED-015<br/>AI IM 会话读取<br/>缺测试手机号}
+  end
+
+  openapi -.->|500 栈信息| INFO-001
+  open -->|302 登录拦截| bc003
+  user -.->|CORS 弱配置| INFO-003
+  jz -->|加密可复现| bc013
+  apk -->|签名可复现| bc013
+  aiim -->|Origin 反射可复现| bc015
+  bc003 ==>|1.优先验证| verify1[服务管理越权]
+  bc010 ==>|2.其次验证| verify2[签名绕过/对象越权]
+  bc013 ==>|3.接着验证| verify3[BOLA/状态流转]
+  bc015 ==>|4.最后验证| verify4[聊天历史读取]
+```
+
+### 规则
+
+- 图中只画拓扑关系，不写证据细节（证据在文字章节已有）
+- 阻塞点菱形必须写明缺失的具体材料
+- 验证序列用 `==>` 粗线按优先级编号
+- 图源码直接嵌入 Markdown，不依赖外部文件渲染
+
 ## 任务日志结构
 
 `notes/log.md` 必须能回答“任务为什么这样推进”和“下一步从哪里继续”。建议包含：
@@ -152,6 +211,23 @@ tasks/YYYY-MM-DD-HHMM-short-task-name/
 - 关键观察和假设：资产、接口、响应差异、误报判断。
 - 阶段结论：已完成、未完成、受限项、证据位置。
 - 续跑 checkpoint：下一条应执行的动作、前置材料、不要重复的失败路径。
+
+### 格式模板
+
+每条记录以时间戳标题开头，包含动作、观察、决策、证据。
+
+```markdown
+## YYYY-MM-DD HH:MM
+
+- 动作：对 <目标> 执行 <方法>。
+- 命令：`curl --resolve ...` / `python probe.py --input ...` / ...
+- 关键观察：状态码分布（200 x N, 404 x M, 超时 x K）、响应差异、数量级。
+- 决策：归档为 <INFO-xxx> / 升级为候选 / 中止该方向（原因）。
+- 工具修正（如有）：修复 <脚本名> 的 <bug>，重跑批次。
+- 证据：`evidence/scan/xxx.json`、`evidence/http/xxx/`。
+```
+
+每条 5-8 行，保留完整的"做了什么 → 看到了什么 → 决定了什么"链条。遇到工具 bug 修复、方法论调整也记录在对应时间戳下。
 
 `notes/log.md` 不替代资产文档或漏洞归档；涉及资产和风险时引用资产 ID、风险 ID 和证据路径。
 
@@ -262,7 +338,7 @@ tasks/YYYY-MM-DD-HHMM-short-task-name/
 - 不编造缺失数据；用“未探明”、“未确认”、“仅版本命中”、“需要账号验证”、“需要追加授权”。
 - 漏洞结论必须基于行为证据，不只基于版本、标题、模板命中或状态码。
 - 资产信息要区分授权资产、发现资产、关联资产、排除资产。
-- 敏感凭据只在用户明确要求或当前授权报告需要时写入；否则脱敏并指向证据文件。
+- 任务文档默认只记录敏感字段的类型、长度、脱敏摘要或不可逆指纹，并引用 `evidence/restricted/` 中的相对路径和 SHA-256；若明确要求自包含原值，整份交付物按受限原始证据管理，不进入 Git 或可复用知识。
 - 对高危安全结论要避免扩大：
   - 能登录消息队列不等于能登录业务后台。
   - 能上传文件不等于 RCE。

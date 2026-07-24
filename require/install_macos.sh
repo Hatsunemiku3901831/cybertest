@@ -3,9 +3,9 @@
 # Cybertest macOS installer.
 #
 # Usage:
-#   bash require/install_macos.sh
-#   bash require/install_macos.sh --with-casks
-#   bash require/install_macos.sh --skip-brew --skip-go-tools
+#   bash require/install_macos.sh --detect --profile web
+#   bash require/install_macos.sh --dry-run --profile web
+#   bash require/install_macos.sh --profile web
 #
 # This script is best-effort. It installs common runtimes and security tools
 # used by tool/*.py wrappers, then prints anything that still needs manual
@@ -22,7 +22,9 @@ WITH_CASKS=0
 SKIP_BREW=0
 SKIP_GO_TOOLS=0
 SKIP_PYTHON_TOOLS=0
-SKIP_PATH_UPDATE=0
+UPDATE_PATH=0
+PROFILE="full"
+MODE="install"
 
 INSTALLED=()
 PRESENT=()
@@ -34,17 +36,49 @@ usage() {
 Usage: bash require/install_macos.sh [options]
 
 Options:
+  --profile NAME        Install profile: minimal, web, full, reverse (default: full).
+  --detect              Read-only command detection for the selected profile.
+  --dry-run             Show detection and install plan without side effects.
+  --update-path         Opt in to updating ~/.zshrc and pipx PATH hints.
   --with-casks          Also install GUI/cask packages such as OWASP ZAP.
   --skip-brew          Do not install Homebrew packages.
   --skip-go-tools      Do not install Go-based tools.
   --skip-python-tools  Do not install Python/pipx tools.
-  --skip-path-update   Do not append PATH hints to ~/.zshrc.
+  --skip-path-update   Compatibility alias; PATH updates are already off by default.
   -h, --help           Show this help.
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --profile)
+      if [[ $# -lt 2 ]]; then
+        echo "[!] --profile requires a value"
+        exit 2
+      fi
+      PROFILE="$2"
+      shift
+      ;;
+    --profile=*)
+      PROFILE="${1#*=}"
+      ;;
+    --detect)
+      if [[ "${MODE}" != "install" ]]; then
+        echo "[!] Choose only one of --detect or --dry-run"
+        exit 2
+      fi
+      MODE="detect"
+      ;;
+    --dry-run)
+      if [[ "${MODE}" != "install" ]]; then
+        echo "[!] Choose only one of --detect or --dry-run"
+        exit 2
+      fi
+      MODE="dry-run"
+      ;;
+    --update-path)
+      UPDATE_PATH=1
+      ;;
     --with-casks)
       WITH_CASKS=1
       ;;
@@ -58,7 +92,7 @@ while [[ $# -gt 0 ]]; do
       SKIP_PYTHON_TOOLS=1
       ;;
     --skip-path-update)
-      SKIP_PATH_UPDATE=1
+      UPDATE_PATH=0
       ;;
     -h|--help)
       usage
@@ -72,6 +106,87 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
+
+case "${PROFILE}" in
+  minimal|web|full|reverse)
+    ;;
+  *)
+    echo "[!] Unknown profile: ${PROFILE}"
+    usage
+    exit 2
+    ;;
+esac
+
+profile_commands() {
+  case "${PROFILE}" in
+    minimal)
+      printf '%s\n' git python curl
+      ;;
+    web)
+      printf '%s\n' \
+        git python curl node go nmap rustscan subfinder dnsx httpx tlsx \
+        naabu katana nuclei ffuf waybackurls arjun wafw00f sqlmap dalfox kr \
+        whatweb zap-baseline.py
+      ;;
+    full)
+      printf '%s\n' \
+        git python curl node go nmap rustscan masscan hashcat trivy gitleaks \
+        semgrep sqlmap wafw00f whatweb subfinder dnsx httpx tlsx naabu \
+        katana nuclei ffuf waybackurls arjun dalfox kr zap-baseline.py
+      ;;
+    reverse)
+      printf '%s\n' git python curl java adb jadx apktool r2 frida
+      ;;
+  esac
+}
+
+profile_has() {
+  local expected="$1"
+  shift
+  local candidate
+  for candidate in "$@"; do
+    [[ "${expected}" == "${candidate}" ]] && return 0
+  done
+  return 1
+}
+
+profile_command_available() {
+  case "$1" in
+    python)
+      command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1
+      ;;
+    r2)
+      command -v r2 >/dev/null 2>&1 || command -v radare2 >/dev/null 2>&1
+      ;;
+    *)
+      command -v "$1" >/dev/null 2>&1
+      ;;
+  esac
+}
+
+show_profile_status() {
+  local command_name
+  printf 'Cybertest dependency mode=%s profile=%s\n' "${MODE}" "${PROFILE}"
+  while IFS= read -r command_name; do
+    if profile_command_available "${command_name}"; then
+      printf 'present  %s\n' "${command_name}"
+    elif [[ "${MODE}" == "dry-run" ]]; then
+      printf 'planned  %s\n' "${command_name}"
+    else
+      printf 'missing  %s\n' "${command_name}"
+    fi
+  done < <(profile_commands)
+  if [[ "${MODE}" == "dry-run" ]]; then
+    printf 'path_update=%s (not applied in dry-run)\n' \
+      "$([[ "${UPDATE_PATH}" -eq 1 ]] && printf enabled || printf disabled)"
+    printf 'No installation, network access, PATH update, or log write was performed.\n'
+  fi
+}
+
+if [[ "${MODE}" == "detect" || "${MODE}" == "dry-run" ]]; then
+  show_profile_status
+  exit 0
+fi
 
 mkdir -p "${SCRIPT_DIR}"
 {
@@ -133,7 +248,7 @@ run_logged() {
 ensure_path_line() {
   local line="$1"
   local target="${HOME}/.zshrc"
-  [[ "${SKIP_PATH_UPDATE}" -eq 1 ]] && return 0
+  [[ "${UPDATE_PATH}" -ne 1 ]] && return 0
   touch "${target}"
   if grep -Fqx "${line}" "${target}"; then
     return 0
@@ -302,13 +417,19 @@ print_summary() {
     done
   done
   printf '\nLog: %s\n' "${LOG_PATH}"
-  printf 'Open a new terminal after installation so PATH changes take effect.\n'
+  if [[ "${UPDATE_PATH}" -eq 1 ]]; then
+    printf 'Open a new terminal after installation so PATH changes take effect.\n'
+  else
+    printf 'Persistent PATH was not changed; rerun with --update-path to opt in.\n'
+  fi
   printf 'Validate with:\n'
+  printf '  python3 tool/detect_capabilities.py --dry-run\n'
   printf '  python3 tool/scan_pipeline.py --help\n'
   printf '  python3 tool/nmap_json_scan.py --help\n'
 }
 
 log_step "Cybertest macOS installer"
+log_info "Profile: ${PROFILE}"
 log_info "Repository: ${REPO_ROOT}"
 log_info "Log file: ${LOG_PATH}"
 
@@ -327,54 +448,78 @@ ensure_path_line 'export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/go/bin:$HO
 log_step "Installing base runtime packages"
 install_brew_formula git git Git
 install_brew_formula python3 python Python
-install_brew_formula node node "Node.js"
-install_brew_formula go go Go
 install_brew_formula curl curl curl
-install_brew_formula pipx pipx pipx
+if profile_has "${PROFILE}" web full; then
+  install_brew_formula node node "Node.js"
+  install_brew_formula go go Go
+fi
+if profile_has "${PROFILE}" web full reverse; then
+  install_brew_formula pipx pipx pipx
+fi
 
-if has_cmd pipx; then
+if [[ "${UPDATE_PATH}" -eq 1 ]] && has_cmd pipx; then
   run_logged "pipx ensurepath" pipx ensurepath || true
 fi
 
-log_step "Installing binary security tools"
-install_brew_formula nmap nmap Nmap
-install_brew_formula rustscan rustscan Rustscan
-install_brew_formula masscan masscan masscan
-install_brew_formula hashcat hashcat Hashcat
-install_brew_formula trivy trivy Trivy
-install_brew_formula gitleaks gitleaks gitleaks
-install_brew_formula semgrep semgrep Semgrep
-install_brew_formula sqlmap sqlmap sqlmap
-install_brew_formula wafw00f wafw00f wafw00f
-install_brew_formula whatweb whatweb WhatWeb
-install_brew_cask zap-baseline.py owasp-zap "OWASP ZAP"
+if profile_has "${PROFILE}" web full; then
+  log_step "Installing Web security binaries"
+  install_brew_formula nmap nmap Nmap
+  install_brew_formula rustscan rustscan Rustscan
+  install_brew_formula sqlmap sqlmap sqlmap
+  install_brew_formula wafw00f wafw00f wafw00f
+  install_brew_formula whatweb whatweb WhatWeb
+  install_brew_cask zap-baseline.py owasp-zap "OWASP ZAP"
 
-log_step "Installing Python-based tools"
-install_python_tool arjun arjun Arjun
+  log_step "Installing Python-based Web tools"
+  install_python_tool arjun arjun Arjun
 
-log_step "Installing Go-based recon and web tools"
-install_go_tool subfinder github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest subfinder
-install_go_tool dnsx github.com/projectdiscovery/dnsx/cmd/dnsx@latest dnsx
-install_go_tool httpx github.com/projectdiscovery/httpx/cmd/httpx@latest httpx
-install_go_tool tlsx github.com/projectdiscovery/tlsx/cmd/tlsx@latest tlsx
-install_go_tool naabu github.com/projectdiscovery/naabu/v2/cmd/naabu@latest naabu
-install_go_tool katana github.com/projectdiscovery/katana/cmd/katana@latest katana
-install_go_tool nuclei github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest nuclei
-install_go_tool ffuf github.com/ffuf/ffuf/v2@latest ffuf
-install_go_tool waybackurls github.com/tomnomnom/waybackurls@latest waybackurls
-install_go_tool dalfox github.com/hahwul/dalfox/v2@latest dalfox
-install_go_tool kr github.com/assetnote/kiterunner/cmd/kr@latest Kiterunner
+  log_step "Installing Go-based recon and Web tools"
+  install_go_tool subfinder github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest subfinder
+  install_go_tool dnsx github.com/projectdiscovery/dnsx/cmd/dnsx@latest dnsx
+  install_go_tool httpx github.com/projectdiscovery/httpx/cmd/httpx@latest httpx
+  install_go_tool tlsx github.com/projectdiscovery/tlsx/cmd/tlsx@latest tlsx
+  install_go_tool naabu github.com/projectdiscovery/naabu/v2/cmd/naabu@latest naabu
+  install_go_tool katana github.com/projectdiscovery/katana/cmd/katana@latest katana
+  install_go_tool nuclei github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest nuclei
+  install_go_tool ffuf github.com/ffuf/ffuf/v2@latest ffuf
+  install_go_tool waybackurls github.com/tomnomnom/waybackurls@latest waybackurls
+  install_go_tool dalfox github.com/hahwul/dalfox/v2@latest dalfox
+  install_go_tool kr github.com/assetnote/kiterunner/cmd/kr@latest Kiterunner
+fi
+
+if [[ "${PROFILE}" == "full" ]]; then
+  log_step "Installing full-profile security tools"
+  install_brew_formula masscan masscan masscan
+  install_brew_formula hashcat hashcat Hashcat
+  install_brew_formula trivy trivy Trivy
+  install_brew_formula gitleaks gitleaks gitleaks
+  install_brew_formula semgrep semgrep Semgrep
+fi
+
+if [[ "${PROFILE}" == "reverse" ]]; then
+  log_step "Installing reverse-engineering tools"
+  install_brew_cask adb android-platform-tools "Android Platform Tools"
+  install_brew_formula jadx jadx JADX
+  install_brew_formula apktool apktool apktool
+  install_brew_formula r2 radare2 radare2
+  install_python_tool frida frida-tools "Frida tools"
+fi
 
 log_step "Post-install updates"
-if has_cmd nuclei; then
+if profile_has "${PROFILE}" web full && has_cmd nuclei; then
   run_logged "nuclei template update" nuclei -update-templates || true
 fi
 
 log_step "Manual or environment-specific items"
-add_unique MANUAL "FOFA API: set FOFA_EMAIL and FOFA_KEY when using tool/fofa_query.py"
-add_unique MANUAL "Burp MCP: install/enable Burp Suite MCP extension before using tool/burp_sse_mcp_bridge.js"
-if ! has_cmd zap-baseline.py; then
-  add_unique MANUAL "OWASP ZAP baseline: install OWASP ZAP cask with --with-casks or use Docker-based ZAP"
+if profile_has "${PROFILE}" web full; then
+  add_unique MANUAL "FOFA API: set FOFA_EMAIL and FOFA_KEY when using tool/fofa_query.py"
+  add_unique MANUAL "Burp MCP: install/enable Burp Suite MCP extension before using tool/burp_sse_mcp_bridge.js"
+  if ! has_cmd zap-baseline.py; then
+    add_unique MANUAL "OWASP ZAP baseline: install OWASP ZAP cask with --with-casks or use Docker-based ZAP"
+  fi
+fi
+if [[ "${PROFILE}" == "reverse" ]] && ! has_cmd adb; then
+  add_unique MANUAL "Android Platform Tools: rerun with --with-casks or install adb manually"
 fi
 
 print_summary

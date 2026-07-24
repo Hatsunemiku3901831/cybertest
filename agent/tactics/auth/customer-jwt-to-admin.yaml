@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "id": "AUTH-CUSTOMER-JWT-TO-ADMIN-001",
+  "version": 1,
+  "title": "客户令牌访问管理路由接受矩阵",
+  "summary": "以最小分页对同一管理路由执行缺失、固定错误、受控客户和受控管理令牌差分。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["api", "admin"],
+    "technologies": ["jwt", "rest"],
+    "endpoint_traits": ["admin-route", "paginated-list", "management-api"],
+    "observed_signals": ["customer_jwt", "admin_route", "member_list", "page_size_parameter"],
+    "business_objects": ["member", "user", "feedback", "telemetry"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["customer_to_admin", "user_to_admin"],
+    "evidence_stages": ["signal", "route", "handler", "object_read", "impact"]
+  },
+  "control_gap": {
+    "category": "authorization",
+    "operation_type": "read",
+    "trust_boundary": "customer_to_admin",
+    "expected_controls": ["token_audience_validation", "role_authorization", "data_scope_filter"],
+    "suspected_missing_controls": ["role_authorization", "data_scope_filter"]
+  },
+  "prerequisites": ["只使用受控客户身份令牌。", "固定 pageSize=1 或等价最小抽样。"],
+  "material_requirements": [
+    {"id": "controlled_customer_token", "description": "受控低权限客户令牌", "required": true},
+    {"id": "controlled_admin_token", "description": "可选受控管理正控令牌", "required": false}
+  ],
+  "request_matrix": [
+    {"id": "missing-auth", "role": "baseline", "description": "不发送认证材料。"},
+    {"id": "fixed-invalid", "role": "negative_control", "description": "发送固定无效同格式令牌。"},
+    {"id": "customer-token", "role": "candidate_probe", "description": "发送受控客户令牌并保持最小分页。"},
+    {"id": "admin-positive", "role": "positive_control", "description": "如有受控管理身份，确认同路由正常响应。"},
+    {"id": "header-position", "role": "negative_control", "description": "对标准 Bearer 与管理专用 Header 做位置对照。"}
+  ],
+  "expected_observations": ["客户令牌必须与固定错误令牌稳定可区分。", "只有返回受保护对象结构或受控对象，才超过路由可达阶段。"],
+  "evidence_invariants": ["同一路由、方法、参数和请求体。", "服务端总量、实际样本行数和唯一实体数分别记录。", "不保存业务字段原值。"],
+  "false_positive_filters": ["公共管理前端或统一 200 错误页。", "固定错误令牌与客户令牌同形。", "仅有服务端声明总量而无实际行。"],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "zero_raw_value",
+  "readonly_fallback": true,
+  "stop_conditions": ["首次读取一个最小受保护对象结构后停止扩大。", "响应出现真实个人原值前停止。"],
+  "rollback": {"required": false, "steps": []},
+  "root_cause_family": "customer_token_admin_authorization",
+  "affected_instance_key_fields": ["environment", "service", "route_template", "customer_role", "admin_capability"],
+  "rating_boundary": "最终等级取决于实际管理对象、字段敏感度和可扩展范围，路由可达本身不定漏洞。",
+  "do_not_overclaim": "不得把客户令牌被解析、管理页面可见或服务端总数写成批量管理数据泄露。",
+  "reopen_conditions": ["取得新鲜受控客户令牌。", "取得管理正控或独立受保护对象。"],
+  "required_capabilities": [
+    {"id": "http.replay", "required": true, "fallbacks": ["cli.http"]}
+  ],
+  "source_cases": [
+    "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": ["customer_and_invalid_token_same_shape", "public_route_confirmed"],
+  "next_discriminating_action": "对 pageSize=1 的同一管理路由执行缺失、固定错误和受控客户令牌三态差分。",
+  "reroute_triggers": ["固定错误与客户令牌同形。", "路由被确认公开。", "发现独立字段级权限或导出路径。"],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

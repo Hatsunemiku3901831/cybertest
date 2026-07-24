@@ -3,14 +3,14 @@
 #
 # This script is intentionally detection-only. It does not install tools.
 # Output defaults:
-#   skills/tool-index.md
-#   skills/tool-index.json
+#   reverse/tool-index.md
+#   reverse/tool-index.json
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$SKILL_ROOT/.." && pwd)"
+REPO_ROOT="$(cd "$SKILL_ROOT/../../.." && pwd)"
 
 OUTPUT_MD="${1:-${SKILL_ROOT}/tool-index.md}"
 OUTPUT_JSON="${2:-${SKILL_ROOT}/tool-index.json}"
@@ -25,15 +25,19 @@ case "$UNAME_S" in
 esac
 
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
-cmd_path() { command -v "$1" 2>/dev/null || true; }
-
 run_version() {
   local cmd="$1"; shift
+  local output
   if ! has_cmd "$cmd"; then
     echo ""
     return 0
   fi
-  "$cmd" "$@" 2>&1 | head -n 1 | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+  output="$("$cmd" "$@" 2>&1 || true)"
+  output="$(printf '%s\n' "$output" | head -n 1 | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+  if [[ "$output" == *"/"* || "$output" == *"\\"* ]]; then
+    output="detected (version output redacted)"
+  fi
+  printf '%s\n' "$output"
 }
 
 file_exists_any() {
@@ -129,10 +133,10 @@ trap 'rm -f "$records_tmp"' EXIT
   echo ""
   echo "- Generated at: $GENERATED_AT"
   echo "- Platform: $PLATFORM ($UNAME_S $UNAME_R)"
-  echo "- Script: \`skills/scripts/refresh-tool-index.sh\`"
+  echo "- Script: \`agent/skills/reverse/scripts/refresh-tool-index.sh\`"
   echo "- Note: This script detects tools only. It does not install tools."
   echo ""
-  echo "| Tool | Skill | Purpose | Available | Path | Version | Install hint |"
+  echo "| Tool | Skill | Purpose | Available | Provider | Version | Install hint |"
   echo "|---|---|---|---|---|---|---|"
 } > "$OUTPUT_MD"
 
@@ -148,7 +152,7 @@ for entry in "${TOOLS[@]}"; do
     for cmd in "${cmd_list[@]}"; do
       if has_cmd "$cmd"; then
         available="yes"
-        path="$(cmd_path "$cmd")"
+        path="$cmd"
         break
       fi
     done
@@ -159,7 +163,7 @@ for entry in "${TOOLS[@]}"; do
     for probe in "${probe_list[@]}"; do
       if [[ -e "$probe" ]]; then
         available="yes"
-        path="$probe"
+        path="$(basename "$probe")"
         break
       fi
     done
@@ -213,7 +217,9 @@ with open(records_path, encoding='utf-8') as f:
             'skill': skill,
             'purpose': purpose,
             'available': available == 'yes',
-            'path': None if path == '—' else path,
+        # Compatibility field: this is a command/provider identifier, never a
+        # resolved filesystem path.
+        'path': None if path == '—' else path,
             'version': None if version == '—' else version,
             'install_hint': hint,
         })
@@ -222,7 +228,7 @@ with open(output_json, 'w', encoding='utf-8') as f:
         'generated_at': generated_at,
         'platform': platform,
         'uname': uname,
-        'script': 'skills/scripts/refresh-tool-index.sh',
+        'script': 'agent/skills/reverse/scripts/refresh-tool-index.sh',
         'tools': tools,
     }, f, ensure_ascii=False, indent=2)
 PY

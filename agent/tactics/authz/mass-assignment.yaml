@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0",
+  "id": "AUTHZ-MASS-ASSIGNMENT-001",
+  "version": 1,
+  "title": "UI 字段差集与敏感字段批量赋值",
+  "summary": "从真实 UI 提交字段与服务端对象字段构造差集，使用单字段 canary、同形负控、独立回读和精确恢复。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["api", "spa", "admin"],
+    "technologies": ["rest", "graphql", "json"],
+    "endpoint_traits": ["object-update", "profile-update", "generic-bind"],
+    "observed_signals": [
+      "ui_field_set",
+      "server_object_fields",
+      "extra_fields",
+      "generic_object_binding",
+      "sensitive_writable_field"
+    ],
+    "business_objects": ["user", "member", "profile", "role", "account"],
+    "operation_types": ["write"],
+    "trust_boundaries": ["user_to_privileged_object", "user_to_admin"],
+    "evidence_stages": ["signal", "route", "handler", "business_logic", "state_change"]
+  },
+  "control_gap": {
+    "category": "authorization",
+    "operation_type": "write",
+    "trust_boundary": "user_to_privileged_object",
+    "expected_controls": [
+      "field_allowlist",
+      "object_authorization",
+      "server_owned_field_protection"
+    ],
+    "suspected_missing_controls": [
+      "field_allowlist",
+      "server_owned_field_protection"
+    ]
+  },
+  "prerequisites": [
+    "使用受控测试账号和可精确恢复的测试对象。",
+    "先取得当前值和正常 UI 请求字段基线。"
+  ],
+  "material_requirements": [
+    {
+      "id": "controlled_test_account",
+      "description": "受控低权限测试账号",
+      "required": true
+    },
+    {
+      "id": "reversible_test_object",
+      "description": "可精确恢复的测试对象",
+      "required": true
+    }
+  ],
+  "request_matrix": [
+    {
+      "id": "ui-baseline",
+      "role": "baseline",
+      "description": "提交真实 UI 允许字段并记录正常更新与回读。"
+    },
+    {
+      "id": "same-shape-negative",
+      "role": "negative_control",
+      "description": "提交同形但应保持不变的非敏感或未知字段，过滤统一 success。"
+    },
+    {
+      "id": "single-field-canary",
+      "role": "candidate_probe",
+      "description": "一次只提交一个可逆敏感字段 canary。"
+    },
+    {
+      "id": "independent-readback",
+      "role": "readback",
+      "description": "使用独立读取面确认服务端状态是否真实变化。"
+    },
+    {
+      "id": "exact-restore",
+      "role": "rollback",
+      "description": "恢复精确基线并再次独立回读。"
+    }
+  ],
+  "expected_observations": [
+    "候选字段被持久化且负控字段保持不变，才支持字段级缺口。",
+    "整包失败不能否定逐字段绑定。",
+    "统一 success 但独立回读无变化时不得确认。"
+  ],
+  "evidence_invariants": [
+    "每次只改变一个字段，其他请求元素保持一致。",
+    "状态变化必须由独立读取面观察。",
+    "回滚后所有被触碰字段与精确基线一致。"
+  ],
+  "false_positive_filters": [
+    "仅客户端响应 success、无独立回读。",
+    "字段只在响应 DTO 回显但未持久化。",
+    "多敏感字段整包失败被误当作所有字段安全。",
+    "负控和候选字段同时变化，说明存在统一处理噪声。"
+  ],
+  "safe_validation_level": "test_object",
+  "sensitivity_policy": "task",
+  "readonly_fallback": true,
+  "stop_conditions": [
+    "首个资产、权限或服务端所有字段被持久化后停止扩大。",
+    "无法取得精确基线或独立回读时停止写入。",
+    "回滚失败时立即停止并保留受控对象状态。"
+  ],
+  "rollback": {
+    "required": true,
+    "steps": [
+      "保存所有待测字段的精确基线。",
+      "仅恢复已被本次验证改变的字段。",
+      "使用独立读取面确认无剩余差异。"
+    ]
+  },
+  "root_cause_family": "mass_assignment",
+  "affected_instance_key_fields": [
+    "scheme_host_port",
+    "http_method",
+    "route_template",
+    "business_object",
+    "sensitive_field"
+  ],
+  "rating_boundary": "只有证明敏感服务端字段真实持久化并闭合业务影响后，才进入漏洞评级门禁。",
+  "do_not_overclaim": "不得把响应回显、统一 success 或普通资料字段更新写成权限提升或资产篡改。",
+  "reopen_conditions": [
+    "获得受控测试账号和可恢复对象。",
+    "发现新的服务端所有字段。",
+    "获得独立读取面或业务消费者证据。"
+  ],
+  "required_capabilities": [
+    {
+      "id": "http.replay",
+      "required": true,
+      "fallbacks": ["cli.http"]
+    }
+  ],
+  "source_cases": [
+    "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": [
+    "candidate_field_not_persisted",
+    "negative_control_changed_same_way"
+  ],
+  "next_discriminating_action": "先构造 UI 字段与服务端对象字段差集，并选择一个可逆单字段 canary。",
+  "reroute_triggers": [
+    "独立回读证明字段未持久化。",
+    "负控与候选字段产生同形变化。",
+    "发现字段由独立权限服务或异步任务处理。"
+  ],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

@@ -1,613 +1,489 @@
 #!/usr/bin/env bash
-# bootstrap-reverse.sh — generic Linux/macOS bootstrapper
+# Safe entry point for reverse capability detection and explicit bootstrap.
 #
-# Parity target: skills/scripts/bootstrap-reverse.ps1
-# Supports the same capability names and the same high-level modes:
-#   - dependency expansion
-#   - package / release / pipx / npm installation
-#   - MCP registration hints / config writing
-#   - optional service start with --start-services
-#   - refresh tool index unless --skip-refresh
-#
-# Usage:
-#   bash skills/scripts/bootstrap-reverse.sh <capability1> [capability2] ... [--start-services] [--skip-refresh]
-#   bash skills/scripts/bootstrap-reverse.sh --list
+# Default behavior is read-only detection. Installation and MCP registration
+# require explicit modes; this script never chooses a global client config.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$SKILL_ROOT/.." && pwd)"
-TOOLS_ROOT="${REVERSE_SKILL_TOOLS_DIR:-$HOME/tools}"
-if [[ "$TOOLS_ROOT" != /* ]]; then
-  TOOLS_ROOT="$PWD/$TOOLS_ROOT"
-fi
-if [[ -z "$TOOLS_ROOT" || "$TOOLS_ROOT" == "/" || "$TOOLS_ROOT" == "$HOME" ]]; then
-  echo "Unsafe REVERSE_SKILL_TOOLS_DIR: $TOOLS_ROOT" >&2
-  exit 2
-fi
-MCP_CONFIG_PATH="${CLAUDE_MCP_CONFIG:-$HOME/.claude/mcp.json}"
+REPO_ROOT="$(cd "$SKILL_ROOT/../../.." && pwd)"
+PROFILE_PATH="$REPO_ROOT/require/profiles.json"
+MACOS_INSTALLER="$REPO_ROOT/require/install_macos.sh"
+CAPABILITY_DETECTOR="$REPO_ROOT/tool/detect_capabilities.py"
 
-UNAME_S="$(uname -s 2>/dev/null || echo unknown)"
-case "$UNAME_S" in
-  Darwin) PLATFORM="macos" ;;
-  Linux) PLATFORM="linux" ;;
-  *) PLATFORM="unknown" ;;
-esac
-
-START_SERVICES=false
-SKIP_REFRESH=false
+MODE="detect"
+MODE_EXPLICIT=false
 LIST_ONLY=false
+MCP_CONFIG_PATH=""
+START_SERVICES=false
 CAPABILITIES=()
 
-for arg in "$@"; do
-  case "$arg" in
-    --start-services) START_SERVICES=true ;;
-    --skip-refresh) SKIP_REFRESH=true ;;
-    --list|-l) LIST_ONLY=true ;;
-    --help|-h) CAPABILITIES+=("__help__") ;;
-    -*) echo "Unknown option: $arg" >&2; exit 2 ;;
-    *) CAPABILITIES+=("$arg") ;;
-  esac
-done
-
-log_info() { printf '\033[36m[INFO]\033[0m %s\n' "$*"; }
-log_ok() { printf '\033[32m[OK]\033[0m %s\n' "$*"; }
-log_warn() { printf '\033[33m[WARN]\033[0m %s\n' "$*"; }
-log_err() { printf '\033[31m[ERR]\033[0m %s\n' "$*"; }
-
+log_info() { printf '[INFO] %s\n' "$*"; }
+log_ok() { printf '[OK] %s\n' "$*"; }
+log_warn() { printf '[WARN] %s\n' "$*"; }
+log_err() { printf '[ERR] %s\n' "$*" >&2; }
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
-cmd_path() { command -v "$1" 2>/dev/null || true; }
-
-json_escape() {
-  python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'
-}
-
-ensure_dir() { mkdir -p "$1"; }
-
-safe_remove_install_dir() {
-  local target="$1"
-  local tmp_target="${2:-}"
-  if [[ -z "$target" || "$target" == "/" || "$target" == "$HOME" || "$target" == "$TOOLS_ROOT" ]]; then
-    log_err "Refusing to remove unsafe install path: $target"
-    return 1
-  fi
-  case "$target" in
-    "$TOOLS_ROOT"/*) ;;
-    *) log_err "Refusing to remove path outside tools root: $target"; return 1 ;;
-  esac
-  rm -rf "$target"
-  if [[ -n "$tmp_target" ]]; then
-    case "$tmp_target" in
-      /tmp/reverse-bootstrap-*|"$TOOLS_ROOT"/*.tmp) rm -rf "$tmp_target" ;;
-      *) log_err "Refusing to remove unsafe tmp path: $tmp_target"; return 1 ;;
-    esac
-  fi
-}
-
-make_temp_file() {
-  local suffix="${1:-download}"
-  local tmp_dir
-  tmp_dir="$(mktemp -d /tmp/reverse-bootstrap-XXXXXX)"
-  printf '%s/%s
-' "$tmp_dir" "$suffix"
-}
-
-sudo_cmd() {
-  if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
-    "$@"
-  elif has_cmd sudo; then
-    sudo "$@"
-  else
-    log_err "sudo is required for: $*"
-    return 1
-  fi
-}
-
-is_kali() {
-  [[ -f /etc/os-release ]] && grep -qi '^ID=.*kali' /etc/os-release
-}
-
-platform_doc() {
-  case "$PLATFORM" in
-    macos) echo "docs/platforms/macos.md" ;;
-    linux)
-      if is_kali; then echo "kali/README-kali.md"; else echo "docs/platforms/linux.md"; fi
-      ;;
-    *) echo "PLATFORMS.md" ;;
-  esac
-}
 
 print_usage() {
   cat <<'EOF'
 Usage:
-  bash skills/scripts/bootstrap-reverse.sh <capability1> [capability2] ... [--start-services] [--skip-refresh]
-  bash skills/scripts/bootstrap-reverse.sh --list
+  bash agent/skills/reverse/scripts/bootstrap-reverse.sh [capability ...]
+  bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect [capability ...]
+  bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run [capability ...]
+  bash agent/skills/reverse/scripts/bootstrap-reverse.sh --install [capability ...]
+  bash agent/skills/reverse/scripts/bootstrap-reverse.sh --apply --mcp-config FILE [capability ...]
+  bash agent/skills/reverse/scripts/bootstrap-reverse.sh --list
 
-Capabilities (parity with bootstrap-reverse.ps1):
-  jadx apktool frida frida-ps idalib-mcp jshookmcp anything-analyzer idapro
-  r2 rabin2 adb agent-browser ghidra-mcp seclists proxycat burpsuite-mcp
-  nmap pentestswarm
+Modes:
+  --detect       Read-only detection (default).
+  --dry-run      Read-only detection plus an installation/registration plan.
+  --install      Explicitly delegate core reverse tools to the platform installer.
+                 It never writes MCP client configuration.
+  --apply        Explicit install plus MCP registration for selected MCP providers.
+                 Registration also requires --mcp-config FILE.
 
-Examples:
-  bash skills/scripts/bootstrap-reverse.sh jadx apktool frida
-  bash skills/scripts/bootstrap-reverse.sh jshookmcp anything-analyzer
-  bash skills/scripts/bootstrap-reverse.sh idapro --start-services
-  bash skills/scripts/bootstrap-reverse.sh burpsuite-mcp
+Options:
+  --mcp-config FILE  Explicit MCP config target. No global path is assumed.
+  --start-services   Unsupported compatibility flag; start providers separately
+                     and expose their URL through environment/runtime discovery.
+  --skip-refresh     Accepted compatibility no-op; index refresh is never implicit.
+  --list, -l         List accepted capability names.
+  --help, -h         Show this help.
 
-Notes:
-  - This script supports Linux and macOS.
-  - It writes MCP config to ~/.claude/mcp.json by default.
-  - Override with CLAUDE_MCP_CONFIG=/path/to/mcp.json.
-  - Override install root with REVERSE_SKILL_TOOLS_DIR=~/tools.
+Runtime endpoint variables:
+  ANYTHING_ANALYZER_MCP_URL
+  IDAPRO_MCP_URL
+  GHIDRA_MCP_URL
+
+Provider variables:
+  CYBERTEST_BROWSER_PROVIDER
+  CYBERTEST_JS_CDP_PROVIDER
+  CYBERTEST_HTTP_CAPTURE_PROVIDER
+  CYBERTEST_HTTP_REPLAY_PROVIDER
+  BURPSUITE_MCP_COMMAND
+
+Safety:
+  detect and dry-run do not install, download, start services, refresh indexes,
+  or write MCP configuration. Fixed ports are not used for discovery.
 EOF
 }
 
-ALL_CAPABILITIES=(
-  jadx apktool frida frida-ps idalib-mcp jshookmcp anything-analyzer idapro
-  r2 rabin2 adb agent-browser ghidra-mcp seclists proxycat burpsuite-mcp
-  nmap pentestswarm
-)
-
-if $LIST_ONLY; then
-  printf '%s\n' "${ALL_CAPABILITIES[@]}"
-  exit 0
-fi
-
-if [[ ${#CAPABILITIES[@]} -eq 0 || "${CAPABILITIES[0]}" == "__help__" ]]; then
-  print_usage
-  exit 0
-fi
-
-install_apt() {
-  local package="$1"
-  log_info "apt install $package"
-  sudo_cmd apt-get update -qq
-  sudo_cmd apt-get install -y "$package"
-}
-
-install_brew() {
-  local package="$1"
-  if ! has_cmd brew; then
-    log_err "Homebrew is required. Install it first: https://brew.sh/"
-    return 1
+set_mode() {
+  local requested="$1"
+  if $MODE_EXPLICIT; then
+    log_err "Choose exactly one mode: --detect, --dry-run, --install, or --apply."
+    exit 2
   fi
-  log_info "brew install $package"
-  brew install "$package"
+  MODE="$requested"
+  MODE_EXPLICIT=true
 }
 
-install_brew_cask() {
-  local package="$1"
-  if ! has_cmd brew; then
-    log_err "Homebrew is required. Install it first: https://brew.sh/"
-    return 1
-  fi
-  log_info "brew install --cask $package"
-  brew install --cask "$package"
-}
-
-ensure_python_runtime() {
-  if ! has_cmd python3; then
-    case "$PLATFORM" in
-      macos) install_brew python ;;
-      linux) install_apt python3 ;;
-      *) log_err "Install Python 3 manually. See $(platform_doc)"; return 1 ;;
-    esac
-  fi
-  if ! has_cmd pipx; then
-    case "$PLATFORM" in
-      macos)
-        python3 -m pip install --user pipx || install_brew pipx
-        ;;
-      linux)
-        install_apt pipx || python3 -m pip install --user pipx
-        ;;
-    esac
-  fi
-  python3 -m pipx ensurepath >/dev/null 2>&1 || true
-  export PATH="$HOME/.local/bin:$PATH"
-}
-
-ensure_node_runtime() {
-  if has_cmd node && has_cmd npm && has_cmd npx; then return 0; fi
-  case "$PLATFORM" in
-    macos) install_brew node ;;
-    linux) install_apt nodejs; install_apt npm ;;
-    *) log_err "Install Node.js manually. See $(platform_doc)"; return 1 ;;
-  esac
-}
-
-ensure_java_runtime() {
-  if has_cmd java; then return 0; fi
-  case "$PLATFORM" in
-    macos) install_brew openjdk ;;
-    linux) install_apt openjdk-17-jdk ;;
-    *) log_err "Install Java manually. See $(platform_doc)"; return 1 ;;
-  esac
-}
-
-ensure_pnpm() {
-  ensure_node_runtime
-  if has_cmd pnpm; then return 0; fi
-  if has_cmd corepack; then corepack enable || true; fi
-  if ! has_cmd pnpm; then npm install -g pnpm; fi
-}
-
-latest_github_asset_url() {
-  local repo="$1"
-  local regex="$2"
-  python3 - "$repo" "$regex" <<'PY'
-import json, re, sys, urllib.request
-repo, pattern = sys.argv[1:]
-req = urllib.request.Request(f'https://api.github.com/repos/{repo}/releases/latest', headers={'User-Agent':'reverse-skill-bootstrap'})
-with urllib.request.urlopen(req, timeout=30) as r:
-    data = json.load(r)
-for asset in data.get('assets', []):
-    if re.search(pattern, asset.get('name','')):
-        print(asset.get('browser_download_url'))
-        raise SystemExit(0)
-raise SystemExit(f'no asset matched {pattern} for {repo}')
-PY
-}
-
-extract_archive() {
-  local archive="$1"
-  local dest="$2"
-  safe_remove_install_dir "$dest" "$dest.tmp"
-  mkdir -p "$dest"
-  case "$archive" in
-    *.zip)
-      unzip -q "$archive" -d "$dest.tmp"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --detect) set_mode "detect" ;;
+    --dry-run) set_mode "dry-run" ;;
+    --install) set_mode "install" ;;
+    --apply) set_mode "apply" ;;
+    --mcp-config)
+      if [[ $# -lt 2 || -z "$2" ]]; then
+        log_err "--mcp-config requires an explicit file path."
+        exit 2
+      fi
+      MCP_CONFIG_PATH="$2"
+      shift
       ;;
-    *.tar.gz|*.tgz)
-      mkdir -p "$dest.tmp"
-      tar -xzf "$archive" -C "$dest.tmp"
+    --mcp-config=*)
+      MCP_CONFIG_PATH="${1#*=}"
+      ;;
+    --start-services)
+      START_SERVICES=true
+      ;;
+    --skip-refresh)
+      ;;
+    --list|-l)
+      LIST_ONLY=true
+      ;;
+    --help|-h)
+      print_usage
+      exit 0
+      ;;
+    -*)
+      log_err "Unknown option: $1"
+      print_usage
+      exit 2
       ;;
     *)
-      mkdir -p "$dest"
-      cp "$archive" "$dest/"
-      return 0
+      CAPABILITIES+=("$1")
       ;;
   esac
-  local top_count
-  top_count=$(find "$dest.tmp" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
-  if [[ "$top_count" == "1" ]] && [[ -d "$(find "$dest.tmp" -mindepth 1 -maxdepth 1 | head -n1)" ]]; then
-    cp -a "$(find "$dest.tmp" -mindepth 1 -maxdepth 1 | head -n1)"/. "$dest/"
-  else
-    cp -a "$dest.tmp"/. "$dest/"
-  fi
-  case "$dest.tmp" in /tmp/reverse-bootstrap-*|"$TOOLS_ROOT"/*.tmp) rm -rf "$dest.tmp" ;; esac
-}
+  shift
+done
 
-install_github_release() {
-  local repo="$1"
-  local regex="$2"
-  local dest="$3"
-  local url file
-  ensure_dir "$TOOLS_ROOT"
-  url=$(latest_github_asset_url "$repo" "$regex")
-  file="$(make_temp_file "$(basename "$url")")"
-  log_info "download $url"
-  curl -L -o "$file" "$url"
-  extract_archive "$file" "$dest"
-  rm -rf "$(dirname "$file")"
-  export PATH="$dest/bin:$dest:$PATH"
-  log_ok "installed $repo to $dest"
-}
+if $START_SERVICES; then
+  log_err "Automatic service start was removed. Start the selected provider explicitly,"
+  log_err "then expose its endpoint through environment or runtime discovery."
+  exit 2
+fi
 
-write_mcp_server() {
-  local name="$1"
-  local json_payload="$2"
-  ensure_dir "$(dirname "$MCP_CONFIG_PATH")"
-  python3 - "$MCP_CONFIG_PATH" "$name" "$json_payload" <<'PY'
-import json, pathlib, sys
-path = pathlib.Path(sys.argv[1])
-name = sys.argv[2]
-payload = json.loads(sys.argv[3])
-if path.exists():
-    try:
-        data = json.loads(path.read_text(encoding='utf-8'))
-    except Exception:
-        data = {}
-else:
-    data = {}
-data.setdefault('mcpServers', {})[name] = payload
-path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
-print(path)
-PY
-  log_ok "MCP server '$name' registered in $MCP_CONFIG_PATH"
-}
+if [[ ! -f "$PROFILE_PATH" ]]; then
+  log_err "Missing reverse profile: require/profiles.json"
+  exit 2
+fi
+if ! has_cmd python3; then
+  log_err "python3 is required to read the reverse profile and capability manifest."
+  exit 2
+fi
 
-test_tcp_port() {
-  local port="$1"
-  python3 - "$port" <<'PY' >/dev/null 2>&1
-import socket, sys
-port=int(sys.argv[1])
-s=socket.socket()
-s.settimeout(1)
-s.connect(('127.0.0.1', port))
+profile_capabilities() {
+  python3 - "$PROFILE_PATH" <<'PY'
+import json
+import pathlib
+import sys
+
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+for command in payload["profiles"]["reverse"]["commands"]:
+    print(command)
 PY
 }
 
-wait_for_port() {
-  local port="$1"
-  local timeout_seconds="${2:-90}"
-  local elapsed=0
-  while (( elapsed < timeout_seconds )); do
-    if test_tcp_port "$port"; then return 0; fi
-    sleep 2
-    elapsed=$((elapsed+2))
+EXTRA_CAPABILITIES=(
+  frida-ps idalib-mcp jshookmcp anything-analyzer idapro rabin2
+  agent-browser ghidra-mcp seclists proxycat burpsuite-mcp nmap pentestswarm
+)
+
+PROFILE_CAPABILITIES=()
+while IFS= read -r capability; do
+  [[ -n "$capability" ]] && PROFILE_CAPABILITIES+=("$capability")
+done < <(profile_capabilities)
+
+KNOWN_CAPABILITIES=("${PROFILE_CAPABILITIES[@]}" "${EXTRA_CAPABILITIES[@]}")
+
+contains_value() {
+  local expected="$1"
+  shift
+  local candidate
+  for candidate in "$@"; do
+    [[ "$candidate" == "$expected" ]] && return 0
   done
   return 1
 }
 
-manual_required() {
-  local name="$1"
-  local hint="$2"
-  log_warn "MANUAL_INSTALL_REQUIRED: $name — $hint"
-}
+if $LIST_ONLY; then
+  printf '%s\n' "${KNOWN_CAPABILITIES[@]}" | awk '!seen[$0]++'
+  exit 0
+fi
 
-is_ready_cmd() {
-  local cmd="$1"
-  has_cmd "$cmd"
-}
-
-ensure_jadx() {
-  if has_cmd jadx; then log_ok "jadx ready: $(cmd_path jadx)"; return 0; fi
-  ensure_java_runtime
-  case "$PLATFORM" in
-    macos) install_brew jadx || install_github_release skylot/jadx '^jadx-[0-9].*\.zip$' "$TOOLS_ROOT/jadx" ;;
-    linux) install_github_release skylot/jadx '^jadx-[0-9].*\.zip$' "$TOOLS_ROOT/jadx" ;;
-  esac
-}
-
-ensure_apktool() {
-  if has_cmd apktool; then log_ok "apktool ready: $(cmd_path apktool)"; return 0; fi
-  ensure_java_runtime
-  case "$PLATFORM" in
-    macos) install_brew apktool ;;
-    linux)
-      if install_apt apktool; then return 0; fi
-      ensure_dir "$TOOLS_ROOT/apktool"
-      local url jar wrapper
-      url=$(latest_github_asset_url iBotPeaches/Apktool '^apktool_.*\.jar$')
-      jar="$TOOLS_ROOT/apktool/apktool.jar"
-      curl -L -o "$jar" "$url"
-      wrapper="$TOOLS_ROOT/apktool/apktool"
-      printf '#!/usr/bin/env bash\njava -jar "%s" "$@"\n' "$jar" > "$wrapper"
-      chmod +x "$wrapper"
-      export PATH="$TOOLS_ROOT/apktool:$PATH"
-      ;;
-  esac
-}
-
-ensure_frida_tools() {
-  ensure_python_runtime
-  if has_cmd frida && has_cmd frida-ps; then log_ok "frida-tools ready"; return 0; fi
-  pipx install frida-tools || pipx upgrade frida-tools
-  export PATH="$HOME/.local/bin:$PATH"
-}
-
-ensure_idalib_mcp() {
-  ensure_python_runtime
-  if has_cmd ida-pro-mcp; then log_ok "ida-pro-mcp ready: $(cmd_path ida-pro-mcp)"; return 0; fi
-  pipx install 'git+https://github.com/mrexodia/ida-pro-mcp.git' || pipx upgrade ida-pro-mcp
-  export PATH="$HOME/.local/bin:$PATH"
-  log_warn "Post-install: run 'ida-pro-mcp --install', choose Streamable HTTP + Global, then restart IDA Pro."
-}
-
-ensure_jshookmcp() {
-  ensure_node_runtime
-  write_mcp_server "jshook" '{"command":"npx","args":["-y","@jshookmcp/jshook@latest"],"env":{"JSHOOK_BASE_PROFILE":"search"}}'
-}
-
-ensure_anything_analyzer() {
-  ensure_node_runtime
-  ensure_pnpm
-  local dir="$TOOLS_ROOT/anything-analyzer"
-  if [[ ! -d "$dir/.git" ]]; then
-    if ! has_cmd git; then
-      case "$PLATFORM" in macos) install_brew git ;; linux) install_apt git ;; esac
-    fi
-    rm -rf "$dir"
-    git clone https://github.com/Mouseww/anything-analyzer "$dir"
-  fi
-  write_mcp_server "anything-analyzer" '{"url":"http://localhost:23816/mcp"}'
-  if $START_SERVICES; then
-    (cd "$dir" && pnpm install && nohup pnpm dev >/tmp/anything-analyzer.log 2>&1 &)
-    wait_for_port 23816 120 || log_warn "anything-analyzer did not open port 23816; see /tmp/anything-analyzer.log"
-  fi
-}
-
-ensure_idapro() {
-  ensure_idalib_mcp
-  write_mcp_server "idapro" '{"url":"http://127.0.0.1:13337/mcp"}'
-  if $START_SERVICES; then
-    case "$PLATFORM" in
-      linux)
-        log_warn "Linux package does not include an IDA GUI launcher. Start IDA manually and ensure MCP listens on 127.0.0.1:13337."
-        ;;
-      macos)
-        log_warn "Start IDA Pro manually on macOS and confirm MCP port in the IDA Output window."
-        ;;
-    esac
-    wait_for_port 13337 45 || log_warn "idapro MCP service is not online on port 13337 yet."
-  fi
-}
-
-ensure_r2() {
-  if has_cmd r2; then log_ok "r2 ready: $(cmd_path r2)"; return 0; fi
-  case "$PLATFORM" in
-    macos) install_brew radare2 ;;
-    linux)
-      if install_apt radare2; then return 0; fi
-      manual_required r2 "Install radare2 from GitHub/source: https://github.com/radareorg/radare2"
-      ;;
-  esac
-}
-
-ensure_adb() {
-  if has_cmd adb; then log_ok "adb ready: $(cmd_path adb)"; return 0; fi
-  case "$PLATFORM" in
-    macos) install_brew android-platform-tools ;;
-    linux) install_apt adb || manual_required adb "Install Android platform-tools from https://developer.android.com/tools/releases/platform-tools" ;;
-  esac
-}
-
-ensure_agent_browser() {
-  ensure_node_runtime
-  if has_cmd agent-browser; then log_ok "agent-browser ready"; return 0; fi
-  npm install -g agent-browser
-  if has_cmd npx; then npx playwright install chromium || true; fi
-  local setup="$SKILL_ROOT/browser-automation/scripts/setup.sh"
-  if [[ -x "$setup" ]]; then "$setup" --skip-browser-install || true; fi
-}
-
-ensure_ghidra_mcp() {
-  ensure_java_runtime
-  case "$PLATFORM" in
-    macos)
-      if ! has_cmd ghidraRun && [[ ! -d /Applications/Ghidra.app ]]; then
-        install_brew ghidra || brew install --cask ghidra || true
-      fi
-      ;;
-    linux)
-      if ! has_cmd ghidraRun; then
-        install_github_release NationalSecurityAgency/ghidra '^ghidra_.*_PUBLIC_.*\.zip$' "$TOOLS_ROOT/ghidra" || \
-          manual_required ghidra-mcp "Install Ghidra from GitHub release or Flatpak, then configure ghidra-mcp if used."
-      fi
-      ;;
-  esac
-  log_warn "ghidra-mcp requires local Ghidra MCP plugin/server setup. See docs/platforms/$( [[ "$PLATFORM" == macos ]] && echo macos || echo linux ).md"
-}
-
-ensure_seclists() {
-  local dir="$TOOLS_ROOT/SecLists"
-  if [[ -d "$dir/.git" || -d /usr/share/seclists ]]; then log_ok "SecLists ready"; return 0; fi
-  if ! has_cmd git; then case "$PLATFORM" in macos) install_brew git ;; linux) install_apt git ;; esac; fi
-  git clone https://github.com/danielmiessler/SecLists "$dir"
-}
-
-ensure_proxycat() {
-  ensure_python_runtime
-  if has_cmd proxycat; then log_ok "proxycat ready"; return 0; fi
-  pipx install git+https://github.com/honmashironeko/ProxyCat.git || manual_required proxycat "Clone/install ProxyCat manually; verify command 'proxycat'."
-}
-
-ensure_burpsuite_mcp() {
-  local bridge_json
-  bridge_json=$(python3 - "$REPO_ROOT/burp-mcp-full/mcp-bridge.js" <<'PY'
-import json, sys
-print(json.dumps({"command":"node","args":[sys.argv[1]]}))
-PY
-)
-  write_mcp_server "burpsuite" "$bridge_json"
-  manual_required burpsuite-mcp "Build burp-mcp-full and load build/libs/burp-mcp-full.jar in BurpSuite Extensions."
-}
-
-ensure_nmap() {
-  if has_cmd nmap; then log_ok "nmap ready"; return 0; fi
-  case "$PLATFORM" in macos) install_brew nmap ;; linux) install_apt nmap ;; esac
-}
-
-ensure_pentestswarm() {
-  if has_cmd pentestswarm; then log_ok "pentestswarm ready"; return 0; fi
-  if ! has_cmd go; then
-    case "$PLATFORM" in macos) install_brew go ;; linux) install_apt golang-go ;; esac
-  fi
-  if ! go install github.com/Armur-Ai/Pentest-Swarm-AI/cmd/pentestswarm@latest; then
-    if has_cmd docker; then
-      write_mcp_server "pentestswarm" '{"command":"docker","args":["run","--rm","-i","ghcr.io/armur-ai/pentestswarm:latest","mcp","serve"]}'
-      log_warn "pentestswarm Go install failed; registered Docker fallback ghcr.io/armur-ai/pentestswarm:latest"
-    else
-      manual_required pentestswarm "Install Go 1.24+ or Docker, then install Pentest-Swarm-AI and ensure pentestswarm is on PATH."
-    fi
-  fi
-}
-
-status_json_line() {
-  local name="$1"
-  local status="$2"
-  local extra="${3:-}"
-  if [[ -n "$extra" ]]; then
-    printf '{"name":"%s","status":"%s","note":"%s"}\n' "$name" "$status" "$extra"
+if [[ ${#CAPABILITIES[@]} -eq 0 ]]; then
+  if [[ "$MODE" == "detect" || "$MODE" == "dry-run" ]]; then
+    CAPABILITIES=("${KNOWN_CAPABILITIES[@]}")
   else
-    printf '{"name":"%s","status":"%s"}\n' "$name" "$status"
+    CAPABILITIES=("${PROFILE_CAPABILITIES[@]}")
   fi
-}
+fi
 
-cap_depends() {
-  case "$1" in
-    idapro) echo "idalib-mcp idapro" ;;
-    frida-ps) echo "frida frida-ps" ;;
-    rabin2) echo "r2 rabin2" ;;
-    *) echo "$1" ;;
-  esac
-}
-
-expand_capabilities() {
-  local seen=" "
-  local out=()
-  local cap dep
-  for cap in "$@"; do
-    for dep in $(cap_depends "$cap"); do
-      if [[ "$seen" != *" $dep "* ]]; then
-        out+=("$dep")
-        seen+="$dep "
-      fi
-    done
-  done
-  printf '%s\n' "${out[@]}"
-}
-
-ensure_capability() {
-  local name="$1"
-  case "$name" in
-    jadx) ensure_jadx ;;
-    apktool) ensure_apktool ;;
-    frida|frida-ps) ensure_frida_tools ;;
-    idalib-mcp) ensure_idalib_mcp ;;
-    jshookmcp) ensure_jshookmcp ;;
-    anything-analyzer) ensure_anything_analyzer ;;
-    idapro) ensure_idapro ;;
-    r2|rabin2) ensure_r2 ;;
-    adb) ensure_adb ;;
-    agent-browser) ensure_agent_browser ;;
-    ghidra-mcp) ensure_ghidra_mcp ;;
-    seclists) ensure_seclists ;;
-    proxycat) ensure_proxycat ;;
-    burpsuite-mcp) ensure_burpsuite_mcp ;;
-    nmap) ensure_nmap ;;
-    pentestswarm) ensure_pentestswarm ;;
-    *) log_err "No bootstrap definition for capability: $name"; return 1 ;;
-  esac
-}
-
-RESULTS_FILE="$(mktemp)"
-trap 'rm -f "$RESULTS_FILE"' EXIT
-
-mapfile -t EXPANDED < <(expand_capabilities "${CAPABILITIES[@]}")
-
-log_info "platform=$PLATFORM doc=$(platform_doc) tools_root=$TOOLS_ROOT"
-
-for cap in "${EXPANDED[@]}"; do
-  log_info "ensure $cap"
-  if ensure_capability "$cap"; then
-    status_json_line "$cap" "ready" >> "$RESULTS_FILE"
-  else
-    status_json_line "$cap" "failed" "see $(platform_doc)" >> "$RESULTS_FILE"
+for capability in "${CAPABILITIES[@]}"; do
+  if ! contains_value "$capability" "${KNOWN_CAPABILITIES[@]}"; then
+    log_err "Unknown capability: $capability"
+    exit 2
   fi
 done
 
-if ! $SKIP_REFRESH; then
-  bash "$SCRIPT_DIR/refresh-tool-index.sh" >/dev/null || log_warn "refresh-tool-index.sh failed"
+capability_dependencies() {
+  case "$1" in
+    idapro) printf '%s\n' idalib-mcp idapro ;;
+    frida-ps) printf '%s\n' frida frida-ps ;;
+    rabin2) printf '%s\n' r2 rabin2 ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
+EXPANDED=()
+seen=" "
+for capability in "${CAPABILITIES[@]}"; do
+  while IFS= read -r dependency; do
+    if [[ "$seen" != *" $dependency "* ]]; then
+      EXPANDED+=("$dependency")
+      seen+="$dependency "
+    fi
+  done < <(capability_dependencies "$capability")
+done
+
+capability_commands() {
+  case "$1" in
+    python) printf '%s\n' python3 python ;;
+    r2) printf '%s\n' r2 radare2 ;;
+    frida-ps) printf '%s\n' frida-ps ;;
+    idalib-mcp) printf '%s\n' ida-pro-mcp ;;
+    jshookmcp) printf '%s\n' npx ;;
+    anything-analyzer) return 0 ;;
+    idapro) printf '%s\n' idat ida ;;
+    agent-browser) printf '%s\n' agent-browser ;;
+    ghidra-mcp) printf '%s\n' ghidraRun ;;
+    seclists) return 0 ;;
+    burpsuite-mcp) return 0 ;;
+    pentestswarm) printf '%s\n' pentestswarm ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
+capability_environment() {
+  case "$1" in
+    jshookmcp) printf '%s\n' CYBERTEST_JS_CDP_PROVIDER ;;
+    anything-analyzer)
+      printf '%s\n' ANYTHING_ANALYZER_MCP_URL CYBERTEST_HTTP_CAPTURE_PROVIDER
+      ;;
+    idapro) printf '%s\n' IDAPRO_MCP_URL ;;
+    agent-browser) printf '%s\n' CYBERTEST_BROWSER_PROVIDER ;;
+    ghidra-mcp) printf '%s\n' GHIDRA_MCP_URL ;;
+    burpsuite-mcp)
+      printf '%s\n' CYBERTEST_HTTP_REPLAY_PROVIDER BURPSUITE_MCP_COMMAND
+      ;;
+  esac
+}
+
+capability_status() {
+  local capability="$1"
+  local variable value command_name
+  while IFS= read -r variable; do
+    [[ -z "$variable" ]] && continue
+    value="${!variable:-}"
+    if [[ -n "$value" ]]; then
+      printf 'capability=%s status=declared source=environment provider=%s\n' \
+        "$capability" "$variable"
+      return 0
+    fi
+  done < <(capability_environment "$capability")
+
+  while IFS= read -r command_name; do
+    [[ -z "$command_name" ]] && continue
+    if has_cmd "$command_name"; then
+      printf 'capability=%s status=present source=path provider=%s\n' \
+        "$capability" "$command_name"
+      return 0
+    fi
+  done < <(capability_commands "$capability")
+
+  printf 'capability=%s status=missing source=none provider=none\n' "$capability"
+  return 1
+}
+
+run_agent_capability_detector() {
+  if has_cmd python3 && [[ -f "$CAPABILITY_DETECTOR" ]]; then
+    log_info "agent capability detector (read-only)"
+    python3 "$CAPABILITY_DETECTOR" --dry-run
+  else
+    log_warn "agent capability detector unavailable"
+  fi
+}
+
+print_detection() {
+  local capability
+  log_info "mode=$MODE platform=$(uname -s 2>/dev/null || printf unknown)"
+  for capability in "${EXPANDED[@]}"; do
+    capability_status "$capability" || true
+  done
+  run_agent_capability_detector
+}
+
+is_profile_capability() {
+  contains_value "$1" "${PROFILE_CAPABILITIES[@]}"
+}
+
+is_mcp_capability() {
+  case "$1" in
+    jshookmcp|anything-analyzer|idapro|ghidra-mcp|burpsuite-mcp)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+print_plan() {
+  local capability
+  log_info "installation and registration plan"
+  for capability in "${EXPANDED[@]}"; do
+    if is_profile_capability "$capability"; then
+      printf 'plan capability=%s action=require-profile-reverse\n' "$capability"
+    elif is_mcp_capability "$capability"; then
+      printf 'plan capability=%s action=runtime-provider-and-explicit-mcp-config\n' \
+        "$capability"
+    else
+      printf 'plan capability=%s action=provider-specific-manual-setup\n' "$capability"
+    fi
+  done
+  printf 'side_effects=none\n'
+}
+
+if [[ "$MODE" == "detect" ]]; then
+  print_detection
+  printf 'side_effects=none\n'
+  exit 0
 fi
 
-python3 - "$RESULTS_FILE" <<'PY'
-import json, sys
-items=[]
-with open(sys.argv[1], encoding='utf-8') as f:
-    for line in f:
-        if line.strip(): items.append(json.loads(line))
-print(json.dumps(items, ensure_ascii=False, indent=2))
+if [[ "$MODE" == "dry-run" ]]; then
+  print_detection
+  print_plan
+  exit 0
+fi
+
+needs_profile_install=false
+needs_mcp_config=false
+needs_provider_setup=false
+for capability in "${EXPANDED[@]}"; do
+  if is_profile_capability "$capability"; then
+    needs_profile_install=true
+  fi
+  if is_mcp_capability "$capability"; then
+    needs_mcp_config=true
+  fi
+  if ! is_profile_capability "$capability"; then
+    needs_provider_setup=true
+  fi
+done
+
+if [[ "$MODE" == "apply" ]] && $needs_mcp_config && [[ -z "$MCP_CONFIG_PATH" ]]; then
+  log_err "--apply for MCP capabilities requires --mcp-config FILE."
+  exit 2
+fi
+
+install_reverse_profile() {
+  local platform
+  platform="$(uname -s 2>/dev/null || printf unknown)"
+  case "$platform" in
+    Darwin)
+      if [[ ! -f "$MACOS_INSTALLER" ]]; then
+        log_err "Missing require/install_macos.sh"
+        return 1
+      fi
+      log_info "delegating explicit installation to require profile=reverse"
+      bash "$MACOS_INSTALLER" --profile reverse
+      ;;
+    *)
+      log_err "No centralized reverse installer is registered for platform=$platform."
+      log_err "Use require/profiles.json as the command contract and install manually."
+      return 1
+      ;;
+  esac
+}
+
+if $needs_profile_install; then
+  install_reverse_profile
+fi
+
+write_mcp_server() {
+  local name="$1"
+  local payload="$2"
+  python3 - "$MCP_CONFIG_PATH" "$name" "$payload" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1]).expanduser()
+name = sys.argv[2]
+payload = json.loads(sys.argv[3])
+if path.exists():
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise SystemExit("MCP config root must be an object")
+else:
+    data = {}
+data.setdefault("mcpServers", {})[name] = payload
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(
+    json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+    encoding="utf-8",
+)
+print(path)
 PY
+}
+
+url_payload() {
+  python3 - "$1" <<'PY'
+import json
+import sys
+from urllib.parse import urlsplit
+
+value = sys.argv[1]
+parsed = urlsplit(value)
+if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+    raise SystemExit("runtime MCP URL must be absolute http(s)")
+print(json.dumps({"url": value}, separators=(",", ":")))
+PY
+}
+
+command_payload() {
+  python3 - "$1" <<'PY'
+import json
+import sys
+
+print(json.dumps({"command": sys.argv[1]}, separators=(",", ":")))
+PY
+}
+
+register_capability() {
+  local capability="$1"
+  local payload
+  case "$capability" in
+    jshookmcp)
+      if ! has_cmd npx; then
+        log_err "jshookmcp registration requires an available npx runner."
+        return 1
+      fi
+      write_mcp_server \
+        "jshook" \
+        '{"command":"npx","args":["-y","@jshookmcp/jshook@latest"],"env":{"JSHOOK_BASE_PROFILE":"search"}}'
+      ;;
+    anything-analyzer)
+      if [[ -z "${ANYTHING_ANALYZER_MCP_URL:-}" ]]; then
+        log_err "Set ANYTHING_ANALYZER_MCP_URL from runtime discovery before apply."
+        return 1
+      fi
+      payload="$(url_payload "$ANYTHING_ANALYZER_MCP_URL")"
+      write_mcp_server "anything-analyzer" "$payload"
+      ;;
+    idapro)
+      if [[ -z "${IDAPRO_MCP_URL:-}" ]]; then
+        log_err "Set IDAPRO_MCP_URL from the active IDA provider before apply."
+        return 1
+      fi
+      payload="$(url_payload "$IDAPRO_MCP_URL")"
+      write_mcp_server "idapro" "$payload"
+      ;;
+    ghidra-mcp)
+      if [[ -z "${GHIDRA_MCP_URL:-}" ]]; then
+        log_err "Set GHIDRA_MCP_URL from the active Ghidra provider before apply."
+        return 1
+      fi
+      payload="$(url_payload "$GHIDRA_MCP_URL")"
+      write_mcp_server "ghidra" "$payload"
+      ;;
+    burpsuite-mcp)
+      if [[ -z "${BURPSUITE_MCP_COMMAND:-}" ]]; then
+        log_err "Set BURPSUITE_MCP_COMMAND from runtime discovery before apply."
+        return 1
+      fi
+      payload="$(command_payload "$BURPSUITE_MCP_COMMAND")"
+      write_mcp_server "burpsuite" "$payload"
+      ;;
+  esac
+}
+
+if [[ "$MODE" == "apply" ]]; then
+  for capability in "${EXPANDED[@]}"; do
+    if is_mcp_capability "$capability"; then
+      register_capability "$capability"
+    fi
+  done
+  log_ok "explicit apply complete"
+else
+  log_ok "explicit core profile install phase complete; MCP configuration was not modified"
+  if $needs_provider_setup; then
+    log_warn "provider-specific capabilities remain explicit manual/runtime setup"
+  fi
+fi
+
+print_detection

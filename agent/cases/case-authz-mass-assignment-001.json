@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+  "title": "资料更新接口的隐藏字段写入边界",
+  "summary": "从正常界面允许字段与服务端对象字段的差集出发，以单字段可逆标记、同形负控、独立回读和精确恢复判断是否存在批量赋值控制缺口。",
+  "scene": "profile-field-write-boundary",
+  "target_type": [
+    "web-api"
+  ],
+  "technology": [
+    "json",
+    "rest"
+  ],
+  "business_object": [
+    "entitlement-counter",
+    "user-profile"
+  ],
+  "operation_type": [
+    "readback",
+    "update"
+  ],
+  "trust_boundary": [
+    "client-allowed-fields-to-server-domain-object",
+    "user-role-to-sensitive-profile-field"
+  ],
+  "observed_signal": [
+    "normal-ui-submits-a-field-subset",
+    "response-model-exposes-additional-writable-looking-fields",
+    "whole-object-update-handler"
+  ],
+  "root_cause_family": "mass_assignment",
+  "evidence_mode": [
+    "controlled-write",
+    "negative-control",
+    "state-readback"
+  ],
+  "required_material": [
+    "controlled-account",
+    "independent-readback-route",
+    "reversible-test-field",
+    "state-baseline"
+  ],
+  "matched_tactics": [
+    "AUTHZ-MASS-ASSIGNMENT-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "ui-server-field-diff",
+      "description": "先恢复正常界面实际提交字段，再与可读对象字段做差集，避免对整包字段盲测。"
+    },
+    {
+      "id": "single-field-canary",
+      "description": "一次只加入一个可逆敏感字段，随后使用独立读取面确认状态是否真实变化。"
+    },
+    {
+      "id": "exact-rollback",
+      "description": "首个敏感字段命中后停止扩大，恢复精确基线并再次读取确认无剩余差异。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "bulk-sensitive-payload",
+      "description": "多个敏感字段整包失败不能证明每个字段均被服务端拒绝。"
+    },
+    {
+      "id": "success-text-only",
+      "description": "统一 success 文案而没有独立回读不能证明服务端持久化。"
+    },
+    {
+      "id": "client-model-only",
+      "description": "仅凭前端模型存在字段不能证明接口接受或写入该字段。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "服务端按当前角色和操作显式列出可写字段，并忽略或拒绝其余字段。",
+    "suspected_missing_control": "更新处理器将客户端对象直接绑定到包含敏感字段的领域对象。",
+    "impact_boundary": "只有受控字段经独立回读发生变化时才确认写入；未执行结算或权限消费时不扩大业务影响。"
+  },
+  "request_matrix": [
+    {
+      "id": "baseline-read",
+      "variant": "positive-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "none",
+      "expected_observation": "记录测试对象的精确基线和可写普通字段。"
+    },
+    {
+      "id": "normal-ui-update",
+      "variant": "positive-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "normal-ui-field-only",
+      "expected_observation": "正常字段可修改且账号和读取面健康。"
+    },
+    {
+      "id": "same-shape-inert-field",
+      "variant": "negative-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "unknown-inert-field",
+      "expected_observation": "过滤统一成功文案、整包忽略和无条件对象回显。"
+    },
+    {
+      "id": "sensitive-field-canary",
+      "variant": "candidate-probe",
+      "auth_context": "controlled-user-a",
+      "mutation": "one-reversible-sensitive-field",
+      "expected_observation": "仅判断该字段是否通过独立读取面发生可归因变化。"
+    },
+    {
+      "id": "rollback-readback",
+      "variant": "rollback",
+      "auth_context": "controlled-user-a",
+      "mutation": "restore-exact-baseline",
+      "expected_observation": "所有测试字段恢复到基线且无残余差异。"
+    }
+  ],
+  "false_positive_filters": [
+    "HTTP 2xx 或统一 success 文案不等于字段已写入。",
+    "接口回显请求对象不等于数据库或权威状态已改变。",
+    "多个字段整包失败不能外推为每个字段都有字段级授权。",
+    "字段只存在于前端模型或文档时仍属于静态候选。"
+  ],
+  "evidence_invariants": [
+    "每轮只改变一个字段，认证上下文、对象和其它请求字段保持不变。",
+    "正控、负控、候选和回滚均使用同一个受控测试对象。",
+    "写入事实只由独立读取面前后状态差异确认。",
+    "证据只保存字段名、类型、差分和状态，不保存真实业务值。"
+  ],
+  "stop_conditions": [
+    "首个敏感字段经独立回读确认变化后立即停止测试其它敏感字段。",
+    "正常字段正控或账号健康检查失败时停止并转为材料阻塞。",
+    "无法精确恢复基线时停止所有后续写入并记录回滚阻塞。"
+  ],
+  "rollback": {
+    "required": true,
+    "method": "使用相同受控账号把单字段恢复到预先记录的精确基线，再通过独立读取面复核。",
+    "success_criteria": "测试对象全部字段与基线一致，且没有新增对象、任务或异步副作用。"
+  },
+  "sources": [
+    {
+      "source_alias": "anonymous-retrospective-index",
+      "relative_path": "agent/retrospectives/index.md",
+      "sha256": "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+      "selection": "选择包含逐字段 canary、独立回读、统一成功误报和精确恢复的匿名摘要。"
+    },
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用首批 Mass Assignment 家族规定的差集、负控、不变量和回滚契约。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

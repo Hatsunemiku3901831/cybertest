@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "id": "INTEGRATION-WEBSOCKET-PATH-IDENTITY-001",
+  "version": 1,
+  "title": "WebSocket 路径身份与连接替换差分",
+  "summary": "用随机身份、受控身份和同随机身份双连接，区分匿名升级、路径身份绑定、连接替换与真实业务路由。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["websocket", "api", "mobile-api"],
+    "technologies": ["websocket", "json"],
+    "endpoint_traits": ["identity-in-path", "peer-channel", "command-channel"],
+    "observed_signals": ["peer_id_in_path", "anonymous_101", "same_identity_replacement", "server_business_frame"],
+    "business_objects": ["device", "peer", "terminal", "message"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["anonymous_to_peer", "peer_to_peer"],
+    "evidence_stages": ["signal", "route", "handler", "business_logic", "impact"]
+  },
+  "control_gap": {
+    "category": "authentication",
+    "operation_type": "read",
+    "trust_boundary": "anonymous_to_peer",
+    "expected_controls": ["peer_authentication", "channel_authorization", "message_integrity"],
+    "suspected_missing_controls": ["peer_authentication", "channel_authorization"]
+  },
+  "prerequisites": ["只使用随机身份和用户控制的测试身份。", "先离线恢复握手、首帧、心跳和 ACK 结构。"],
+  "material_requirements": [
+    {"id": "controlled_peer_identity", "description": "用户控制的测试身份或设备", "required": true}
+  ],
+  "request_matrix": [
+    {"id": "random-identity", "role": "negative_control", "description": "连接高熵随机身份，观察是否仅完成协议升级。"},
+    {"id": "controlled-identity", "role": "candidate_probe", "description": "连接受控身份并等待一个安全业务帧。"},
+    {"id": "same-random-dual", "role": "negative_control", "description": "对同一随机身份建立双连接，观察替换或 fanout。"},
+    {"id": "controlled-business-frame", "role": "readback", "description": "仅以双方精确匹配的服务端业务帧证明路由。"}
+  ],
+  "expected_observations": ["匿名 101 只证明升级。", "精确受控业务帧才证明身份到业务路由绑定。"],
+  "evidence_invariants": ["不使用真实第三方身份。", "随机身份高熵且不可关联真实设备。", "ACK 与实际业务执行分开记录。"],
+  "false_positive_filters": ["仅握手 101 或心跳。", "客户端本地回显。", "静态代码存在危险处理器但无服务端路由证据。"],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "zero_raw_value",
+  "readonly_fallback": false,
+  "stop_conditions": ["首次观察到精确受控业务帧后停止。", "出现非受控身份或危险命令前立即断开。"],
+  "rollback": {"required": false, "steps": ["关闭所有测试连接并确认无持续会话。"]},
+  "root_cause_family": "websocket_path_identity_trust",
+  "affected_instance_key_fields": ["scheme_host_port", "route_template", "identity_field", "message_family"],
+  "rating_boundary": "真实路由、ACK 接受和危险处理器影响必须分层评级。",
+  "do_not_overclaim": "不得把匿名 101、心跳、连接替换或静态危险处理器写成远程命令执行。",
+  "reopen_conditions": ["取得受控测试身份。", "恢复新的首帧、签名或 ACK 结构。"],
+  "required_capabilities": [
+    {"id": "http.capture", "required": true, "fallbacks": ["cli.http"]}
+  ],
+  "source_cases": [
+    "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": ["handshake_only", "heartbeat_only", "controlled_frame_not_observed"],
+  "next_discriminating_action": "先用高熵随机身份与受控身份做握手和首帧单变量差分。",
+  "reroute_triggers": ["只观察到协议心跳。", "发现独立签名或身份凭据。", "出现真实业务帧或 ACK。"],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

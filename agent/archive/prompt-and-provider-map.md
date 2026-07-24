@@ -1,4 +1,6 @@
-# Prompt And Provider Map Skill
+# Archived Prompt And Provider Map
+
+> 历史文档：内容来自已不属于当前 Cybertest 工作空间的 Go/React 运行时，仅供追溯，不是当前架构或操作依据。若未来恢复对应源码，应根据真实目录重新生成文档，不要直接复用本文件。
 
 ## Prompt 清单
 
@@ -91,4 +93,3 @@ Provider 目录：
 - `CODEX_MAX_OUTPUT`
 
 它不是标准 LLM provider，而是在 `createFlow` 时对 `modelProvider == "codex"` 做旁路处理，直接调用宿主机 Codex CLI bridge 并把结果写回 Flow。
-

@@ -1,0 +1,25 @@
+name: Offline quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline release gate
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 tool/release_gate.py

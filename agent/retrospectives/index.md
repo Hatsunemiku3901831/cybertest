@@ -194,6 +194,94 @@
 | 2026-06-22 | 本地任务归档 retrospective.md | target-lab-equipment-recon | 资产测绘/信息收集 | 企业品牌站可用“公开供应商页 + 页脚备案 + 外链 + 历史 DNS + 首页指纹”快速建模；强关联集团资产、第三方平台和目标主体应分层记录 | 不要把标题异常、过期停放、版本头或第三方平台页面直接包装成漏洞；无所有者确认和影响闭环时按信息项/待确认处理 |
 | 2026-06-22 | [../../tasks/2026-06-22-0239-chongqing-department-store-recon/retrospective.md](../../tasks/2026-06-22-0239-chongqing-department-store-recon/retrospective.md) | target-retail-listed-company-recon | 资产测绘/信息收集 | 上市零售企业可用证券公开资料、官网业务系统链接、线上业务页、CT/urlscan、DoH 和公开 JS API family 快速建模；强关联供应商域、历史域、第三方 SaaS/OAuth 应分层标注 | 不要信任 TUN 下的 Fake-IP；不要把公开后台/前端配置/第三方平台/历史品牌域异常直接包装成漏洞，需归属、账号态和业务影响闭环 |
 | 2026-06-22 | [../../tasks/2026-06-22-1952-yingbeikang-asset-recon/retrospective.md](../../tasks/2026-06-22-1952-yingbeikang-asset-recon/retrospective.md) | target-small-biotech-iis-recon | 资产测绘/信息收集 | 小型企业品牌站可用官网页脚、DoH/CT/TLS、RDAP、低频 GET/HEAD 和 JS 接口抽取快速闭合根域、官网、承载 IP、接口和第三方边界 | 不要直接采纳未降噪候选队列；不要把版本头、HSTS 缺省、robots/sitemap 404、公开证照或第三方统计/供应商外链包装成漏洞；写入接口无授权时转材料阻塞 |
-| 2026-06-24 | [../../tasks/2026-06-24-0945-shandong-zhongan-biosafety-recon/retrospective.md](../../tasks/2026-06-24-0945-shandong-zhongan-biosafety-recon/retrospective.md) | target-small-testing-lab-recon | 资产测绘/信息收集 | 小型检测服务企业可用公开主体/备案/第三方展台/官网公开 API 交叉确认归属；source map/后台路由生成结构化端点清单后，可用 A/B 对象矩阵和 no-token/fake-token/front-token 后台矩阵低影响收束高危候选 | 不要把 source map、公开后台入口、企业邮箱入口、HTTPS 配置观察或第三方展台包装成中高危；写接口 success 需读回复核，后台认证态、报告文件链和上传需材料时转阻塞 |
+| 2026-06-24 | [../../tasks/2026-06-24-0945-shandong-zhongan-biosafety-recon/retrospective.md](../../tasks/2026-06-24-0945-shandong-zhongan-biosafety-recon/retrospective.md) | target-small-testing-lab-recon | 资产测绘/信息收集 | 小型检测服务企业可用公开主体/备案/第三方展台/官网公开 API 交叉确认归属；source map/后台路由生成结构化端点清单后，可用 A/B 对象矩阵、no-token/fake-token/front-token 后台矩阵、少量后台登录错误分支、转发 IP 头样本、风险端口 banner 边界、注册状态提示差异、手机号所有权校验证据、公开微信/公众号账号/文章源、高价值命名 DoH、公开媒体目录边界、公开 API 动态附件精确 URL边界、0 元产品价格采样、剩余公开 API 错误/反射小样本、公开元数据路径小样本、离线 DOM route taint、一次性对象删除读回和跨账号添加双方归属读回验证低影响收束高危候选 | 不要把 source map、公开后台入口、后台登录区域限制提示、未改变响应的转发 IP 头、21/tcp 无 banner、注册接口手机号存在提示、手机号可抢注、企业邮箱入口、HTTPS 配置观察、第三方展台、第三方公众号文章、高价值命名无解析、公开图片 200、公开 API 返回标准 PDF/新闻 zip、0 元测试订单、公开 API 单引号/marker 0 命中、`.well-known`/manifest/service worker/config/version 404/fallback、SPA router.push 路由参数、无 source 流入的 v-html/window.open 清单、cross 删除 success 但 owner 读回仍存在或 cross 添加返回新 ID 但只在 actor 名下出现的状态包装成中高危；计数类状态修改接口无明确写入授权应跳过，写接口 success 需读回复核，后台认证态、报告文件链、金额链、上传、公开元数据扩展、DOM taint、盲注、跨对象删除和跨对象添加方向需材料时转阻塞 |
 | 2026-06-24 | [../../tasks/2026-06-22-0239-chongqing-department-store-recon/retrospective.md](../../tasks/2026-06-22-0239-chongqing-department-store-recon/retrospective.md) | target-retail-bounty-material-blocked | 授权赏金 Web/API 高危优先续测 | 零售集团公开面可通过“官网业务系统链接 + JS 密钥/API 抽取 + Swagger 保存 + A/B/noauth 小矩阵 + App Store/新闻公开源”快速确认中危并收敛材料阻塞；所有信息项都应写入防重复边界 | 不要把公开业务名、Swagger UI 壳、source map HTML fallback、版本适用、默认密码规则或 400/403/404 测试域包装成高危；缺账号、App 包、抓包流量、测试对象或邮箱凭据时应停止重复匿名探测 |
 | 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-public-recon | 资产建模/信息收集 | 房地产集团公开面可用官方 IR/官网入口快速扩展招采、置业平台、招聘、建筑科技、代建管理和 App 资产；DoH 可绕过本地 Fake-IP；SPA JS 离线抽取适合生成 API 候选队列 | 不要把 crt.sh 502 当无资产、curl 405 当站点不可用、SPA fallback 200 当真实文件、前端接口路径或第三方 SaaS 当已确认漏洞 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-noauth-backoffice-boundary | 授权赏金无登录态后台/API 深测 | 历史后台入口先用 DoH 固定 Host/SNI + 少量 GET/OPTIONS/空参矩阵确认预算/SSO/NC/门户边界；HTTP 登录页需结合 JS 相对提交路径、HTTPS 可用性和预登录接口分层评级；Liferay 老版本先看 JSONWS 是否展开 | 不要把旧 IP 无关页面、HTTP 登录页、版本号、内网 URL、老组件或公开楼盘空成功直接包装成中高危；短信/预约接口无测试手机号时只做空参/无效参，认证错误即收束 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-spa-prefix-noauth-matrix | 授权赏金 SPA/API 无登录态边界验证 | SPA API 要先从 chunk 还原 base URL、业务前缀和上传前缀，再做 no-token/空 JSON/fake-object 小矩阵；公共主题/皮肤配置应单独归为 public_config | 不要把缺前缀的 SPA fallback、invalid request、用户未登录、公共 UI 配置或无账号材料状态包装成中高危；继续需要低权限账号、测试对象和可回滚文件 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-public-docs-history-boundary | 授权赏金公共文档/历史系统无登录态边界验证 | 高价值主机公共文档/配置探测优先用极短标准集合；历史域名先做 DoH，无公网 A 直接记 `dns_no_public_a`；默认下载页和 logo 只能作为运维信号 | 不要把 close JSON、SPA fallback、302 到 404、空 500、无公网 A、默认 nginx 测试页包装成 Swagger/Actuator/Git/文件泄露 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-host-sni-swagger-boundary | 授权赏金 Host/SNI/源站与 Swagger 引用页边界验证 | Host/SNI 源站差异先用可信 DoH + `curl --resolve` + IP 直连 + 已知 sibling Host 小矩阵；Swagger 引用页需继续取 `/swagger-resources`、`/v2/api-docs` 才能判断文档是否真的公开 | 不要把 IP 直连公开官网/默认 nginx/WAF/302、同 IP 正常站点或 Swagger iframe/Loading 页包装成源站绕过或 API 文档泄露；没有 OpenAPI JSON 或敏感 schema 时按阴性边界 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-doc-preview-boundary | 授权赏金历史 URL/文档预览签名边界验证 | 历史 GUID 下载先做 DoH；文档预览链的前端 secret 需配合 INVALID URL 有效/无效签名对照、账号态测试对象和 token 依赖判断是否被服务端消费 | 不要把无公网 A、405、默认 Tomcat、前端 secret、I Doc View 错误页或 URL 编码后的 JS 反射包装成中高危；缺测试文档对象时转材料阻塞 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-openapi-docs-js-boundary | 授权赏金开放平台公开文档与当前 JS API 边界验证 | 历史入口应抓当前 JS 和公开 GitBook 文档还原真实 API base、对象模型、OAuth/AppSecret/token/openId/houseId 等材料需求；POST 型文档接口先用 GET 空请求闭合方法/路由边界 | 不要把公开 GitBook、接口路径、字段名、dev/uat/test 404 或凭据式 CORS 回显直接包装成漏洞；没有账号/AppSecret/测试对象时转材料阻塞 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-js-env-standard-paths | 授权赏金 JS 暴露 dev/test/uat 环境域标准敏感路径边界验证 | 生产 JS 暴露的环境域需固定小矩阵覆盖 Swagger/OpenAPI、Actuator、Git、.env 和根路径；DoH 分类先于 live 探测，生产多路径同 title 应按 SPA fallback 处理 | 不要把 dev/test/uat 命名、无公网 A、404、连接失败、空响应或同一 SPA fallback 包装成测试环境泄露；仅在新 JS、DNS/IP 变化或账号/AppSecret/token 材料到位时差量复测 |
+| 2026-06-24 | [../../tasks/2026-06-24-1727-redstar-macalline-recon/retrospective.md](../../tasks/2026-06-24-1727-redstar-macalline-recon/retrospective.md) | target-retail-listed-company-simple-recon | 资产测绘/信息收集 | 上市零售集团可用年报/官网/备案聚合快速分层主体直备案域、子公司业务域、第三方 CDN/WAF 和历史域；DoH 可修正本地 Fake-IP；标题级 httpx 适合小规模入口摸底 | 不要把 subfinder/crt.sh 超时当无资产；不要把 Fake-IP、CDN IP、公开 UI/招聘/活动入口或第三方备案主体直接包装成漏洞或主体直接范围 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-source-map-oauth-boundary | 授权赏金 SPA source map/OAuth 客户端边界验证 | 生产 `.js.map` 可直接还原 env/API/auth header；OAuth Basic client 需先以 GET/OPTIONS 和 Swagger follow-up 闭合匿名边界，再等待测试账号验证 token/scope | 不要把 source map、前端源码、Basic client、公共展示 API 或 Swagger UI 壳直接包装成中高危；无账号不 POST token |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-legacy-php-search-reflection-boundary | 授权赏金老 PHP 展示站公开路径与搜索反射边界 | 老 PHP 展示站公开面先用固定小矩阵覆盖 phpinfo/SCM/备份/后台/API 文档，再跟随 robots 和页面表单真实路径；搜索反射需用上下文闭合 payload 验证是否可执行 | 不要把 0 字节 200、目录禁止访问、403、原始自定义标签反射或单引号无报错包装成中高危；闭合 payload 被转义/剥离时按信息项降级 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-passive-delta-iot-scm-boundary | 授权赏金被动差量 dev/test 前端与智能家居/SCM API 边界 | urlscan/CT/Wayback 差量去重后优先 dev/test/management/API 命名入口；SPA API 必须从请求封装确认真实前缀，`/api` 301 到 SPA 时要校正到真实业务前缀；智能家居授权端点先用 JS 中少量 houseId GET-only 检查是否返回身份材料 | 不要把前端接口清单、静态 appkey/token 字段、登录页、METHOD_ERR、统一无权限 JSON 或 502 包装成中高危；无账号/房屋/设备/订单/合同/可回滚文件时转材料阻塞 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-survey-static-signature-boundary | 授权赏金问卷 SPA 静态签名材料与跳转包装边界 | 历史 URL 中的 userID/userCode/goto 先用被动样本、空参数和良性外部目标对照；客户端跳转包装要继续验证二级页；前端 token/key/AES/MD5 签名材料只先测只读 action | 不要调用 Apply/Create/Submit/GetOrCreate 等可能副作用动作；只返回公开活动展示记录、昵称/祝福/金额文案和统计数时按信息项降级，缺少敏感身份/核心业务/写入影响不升中高危 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-budget-transport-boundary | 授权赏金预算/成本系统传输安全与预登录信息边界 | 登录入口复核要同时看 HTTP/HTTPS 当前态、是否强制跳转、JS 相对提交路径、预登录 Cookie 安全属性和内部地址/版本泄露 | 不要把历史 HTTPS timeout、版本头、内网 URL 或无 Cookie 默认值包装成中高危；范围未确认或缺测试账号时按信息项/低危候选阻塞 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-legacy-portal-reset-boundary | 授权赏金老门户版本与找回密码链材料阻塞 | 老门户先用 JSONWS/API docs/WEB-INF/Git/env/control panel 固定公开端点矩阵；找回密码链只用明显无效合成身份材料测试查询边界 | 没有授权测试身份、手机号、账号和验证码接收条件时，不调用短信发送、验证码比对或改密接口；老版本 header 和公开重置入口不能直接定漏洞 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-public-download-filter | 授权赏金 sitemap 公开下载与公开附件误报过滤 | 下载/案例路径先判断是否由 sitemap、公开栏目或页面正文明示；少量请求确认文件名、栏目标题和是否目录列举即可 | 不要把公开简介 PDF、公开附件、公开图片、导航关键词或 sitemap 明示路径包装成任意文件下载；需隐藏对象枚举、路径穿越或非公开资料证据才升级 |
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-noauth-material-blocked | 授权赏金无登录态高收益路径收束与材料阻塞判定 | P0/P1 队列可用 no-token/fake-object/空参/固定公开端点矩阵闭合；剩余方向均需账号、对象、token、手机号或范围确认时转材料清单 | 不要为了继续挖重复跑已证伪的标准敏感路径、Swagger follow-up、Host/SNI、公开附件、活动分页、老组件 payload 或登录密码提交 |
+
+| 2026-06-24 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-cas-sso-stack-boundary | 授权赏金 CAS/SSO service 参数与堆栈边界 | SSO/CAS 先用 GET-only 覆盖登录页、service 参数、OIDC metadata、Swagger/Actuator/Git/env 和 ticket 方法边界；堆栈回显作为信息项保留 | 不要把 CAS 登录页、service 参数停留登录页、静态资源、/cas-admin hash 链接或 405 Java 堆栈包装成中高危；升级需要测试账号、受控回调和 ticket/code/token 影响闭合 |
+| 2026-06-25 | [../../tasks/2026-06-24-1801-redstar-macalline-bounty/retrospective.md](../../tasks/2026-06-24-1801-redstar-macalline-bounty/retrospective.md) | target-retail-bounty-noauth-api-boundary | 授权赏金 Web/API 无登录态高危优先测试 | 被动 URL/JS 队列 + 固定 Host/SNI + no-token/fake-object/空体小矩阵能快速确认文件下载和 API 身份信任问题，并把公开匿名面收束到确认、降级、无影响或材料阻塞 | 不要把静态 Swagger UI 壳、公开配置、公开图片/CDN、前端路由、source map 404/302、内部服务名重定向、普通 CORS 或历史 NXDOMAIN 包装成中高危；剩余高收益方向需要账号、手机号、token、测试对象或 callback |
+| 2026-06-25 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-mobile-sts-boundary | 授权赏金官方 APK 静态分析与云 STS 边界验证 | 官方 APK 的压缩 www 资源可还原生产 API base 和 STS 取签接口；无认证 STS 响应要用云侧只读元数据动作验证身份有效性和 policy 边界 | 不要把有效 STS 直接拔高为高危，除非证明对象列表、读取、写入、大量敏感数据或控制面影响；生产无授权时不下载对象、不上传、不删除 |
+| 2026-06-26 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-recovery-delta-noauth-stop | 授权赏金历史不可达主机恢复性差量与匿名停止点 | 历史无公网 A/HTTPS 失败主机先用可信 DoH 恢复性筛选；公网 A 主机根路径若已 TLS/连接失败，应主机级早停并同步到资产、候选、归档和接手文档 | 不要为了继续匿名测试重复跑已证伪标准路径；当 P0/P1 全部进入确认、阴性、降级、范围确认或材料阻塞时，转账号/对象/token/回调/范围材料清单 |
+| 2026-06-27 | 本地任务归档 retrospective.md | target-mobile-guardian-api | 授权 L3 移动端后端/API/自定义 TCP 高危优先测试 | 绑定码类链路优先通过合法业务生成自有有效码，再验证无认证查询、字段敏感性、一次性/有效期/限速，并用泄露凭据登录 IM/长连接成功命令码闭合影响；两个角色 APP 都要反编译校正真实参数 | 不要把用户文档里的绑定码格式或下载参数当事实；不要把危险后缀上传直接报 RCE；缺少执行、穿越、跨用户或协议登录证据时必须降级或转材料阻塞 |
+| 2026-06-26 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-round3-passive-newhost-boundary | 授权赏金被动新增 gtcloud 高价值命名 host 边界复核 | 被动 OSINT 差量需与资产清单和上一轮结果去重；新增 admin/sync/uat/docs/report 命名 host 先做 DoH，只有公网 A 的主机再用极短标准路径集合闭合公开敏感配置/API 文档 | 不要把 Wayback 历史 URL、管理/同步命名、公开登录页或无公网 A 历史主机包装成漏洞；缺账号、对象、范围确认时转候选和信息级阴性边界 |
+
+| 2026-06-26 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-openapi-bulk-read-stop | 授权赏金公开 OpenAPI 大量读接口分批停止点 | 公开 Swagger 后按财务/合同/组织/角色/项目等高分 GET-only 读接口分批抽样；连续多批统一认证错误即可转认证态材料 | 不要把 OpenAPI 路径、接口摘要或 200 JSON 认证错误包装成数据泄露；无匿名业务字段时停止同质穷举 |
+| 2026-06-26 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-public-code-search-boundary | 授权赏金被动公开代码/仓库搜索边界 | 精确域名 repo/issue/npm 搜索可闭合公开仓库泄露缺口；代码搜索认证/Checkpoint 应记录为受限来源 | 不要把通用 OSS/STS、中文主体词、营销资料或泛中文 npm 包噪声包装成目标源码/凭据泄露 |
+| 2026-06-26 | 本地任务归档 retrospective.md | target-local-services-bounty-material-blocked | 授权赏金 Web/API 高危优先测试 | 无账号公开面收束时，开放平台、后台、移动端 signed API、AI IM、对象存储和测试环境命名主机都应分别形成负向边界；本地证据凭据筛查和 UserSig helper 复核可快速压低误报 | 不要把公开文档、示例字段、前端密钥字段名、CORS 反射空响应、公共存储域名、SDK 字段名、fake-object 业务错误或测试域命名单独包装成中高危；剩余应转账号、A/B 对象和可回滚写入材料 |
+
+### 2026-06-26 移动端市场兜底页包体缺口复核
+- 标签：`mobile-static`, `app-market`, `material-blocker`, `parser-gap`
+- 经验：移动市场 simple 页可能返回市场自身 noapp 兜底元数据，而不是目标包；只看 HTTP 200 或 `window.systemData` 存在会误判。应解析 `appDetail.packageName` 并与目标包名比对，再决定是否下载或进入 APK 静态分析。
+- 工具：curl Android UA、保存 header/body/meta；非标准 JS 对象可用轻量字段正则辅助判断，但不要把解析失败直接等同于无数据。
+- 下次动作：若 `target_package_metadata_present=false` 且无直接 APK URL，应归档为材料阻塞，不重复请求；只有取得可信 APK 后才做 jadx/apktool。
+
+### 2026-06-26 Android 市场索引差量与搜索词回显复核
+- 标签：`mobile-static`, `app-market`, `osint`, `false-positive-filter`
+- 经验：公开应用市场搜索页经常回显 query 里的应用名/包名；必须区分 query 回显、搜索上下文和真实目标详情元数据。没有版本、MD5、开发者、下载地址或包详情时，不应进入 APK 下载或漏洞判断。
+- 工具：多市场 GET-only、保存 header/body/meta；输出 `target_metadata_candidate_count` 和 `direct_apk_candidate_count`，不要只看关键词出现次数。
+- 下次动作：发现 APK URL 后先验来源/包名/签名/哈希；没有可信 APK 时归档为材料阻塞。
+
+## 2026-06-26 APK 静态样例 PII 复核
+
+- 场景：官方移动端 APK 已取得并离线解包，无登录网络路径基本收束。
+- 经验：对 APK/JS bundle 做离线 PII/业务样例扫描，可发现 UserSelect/通讯录 fixture 泄露。需按“总记录、合理手机号、过滤明显测试/占位后的姓名+手机号、业务字段”分层统计；有大量测试上下文但仍有多条真实形态联系方式时按中危信息泄露归档，不直接拔高高危。
+- 下次：移动端静态分析检查表加入 fixture/样例数据/通讯录/组织树扫描，输出脱敏摘要并保留源文件路径供复现。
+
+## 2026-06-26 匿名复盘：被动资产差量耗尽后的分批边界策略
+
+- 场景：授权赏金目标在多轮无登录矩阵后未剩明显可执行项。
+- 经验：可回到公开被动 OSINT 源做差量资产挖掘，用高价值命名打分后分批 DoH-first 复核；不要把历史子域名、无公网 A 或统一 404 当成漏洞。
+- 风险控制：每批限定少量 GET-only 固定路径；发现公开文档/配置/业务数据再进入评级门禁，否则归档为信息项并记录不要重复。
+
+## 2026-06-26 匿名复盘：公开 SPA 壳的低风险升级路径
+
+- 场景：被动高价值 host 分批复核中出现公开 SPA 壳，但固定敏感路径无高信号。
+- 经验：先按信息项归档，不直接定级；后续只做静态 JS/API/source map/secret 离线差分，出现真实 API 或敏感材料再升级。
+
+## 2026-06-26 匿名复盘：配置错误文案不等于凭据泄露
+
+- 场景：高价值测试域返回未配置 appId/appSecret 的通用错误页。
+- 经验：未出现真实 appId、secret、token、栈或业务数据时只能按信息边界记录；下一步应做静态 JS/API 差分或等待授权凭据，而不是直接定级。
+
+## 2026-06-26 匿名复盘：公开 SPA 暴露 API 路径的闭合顺序
+
+- 场景：公开 SPA 静态 JS 暴露大量高价值 API 路径。
+- 经验：先做 secret/source map 检查，再只抽样读类 GET；若返回 SPA 壳且无凭据/数据，不升级为漏洞，转为账号材料阻塞或信息边界。
+
+## 2026-06-26 匿名化：低优先级 host 抽样批量控制
+
+- 场景：高价值命名资产的高分段、公开 SPA 和匿名读接口均未出可升级信号后，继续覆盖低分 host。
+- 经验：低分 host 应小批量、短超时、DoH-first、GET-only；不要直接大批串行，否则大量网络/TLS 超时会拖慢闭合。
+- 复用：先闭合高分与公开 API，再将低分 host 作为抽样而非主线；材料到位时优先认证态只读矩阵。
+
+## 2026-06-26 匿名化：DoH 结果复用与固定 IP 复核
+
+- 场景：低优先级资产批量探测时，DoH 解析器本身偶发不可达，导致后续脚本把目标误记为无公网 A。
+- 经验：将 DoH-only 审计结果保存为证据，再用已保存 A 记录做固定 Host/SNI GET 复核，可减少解析波动造成的误判。
+- 复用：对低分尾批先 DoH-only，再仅对 public A host 固定 IP 复核；无高信号后降级。
+
+## 2026-06-26 匿名化：历史 URL 被动差量后的敏感参数跳过
+
+- 场景：无登录候选归零后，公开历史索引仍可能出现 ticket、userID、token 等 credential-like URL。
+- 经验：此类 URL 只作为被动线索归档，不主动重放；优先复核静态 JS、公开页面和新 host 固定路径。
+- 复用：被动差量脚本输出 high-value seed，边界探针按敏感参数黑名单跳过，并记录 skipped reason。
+| 2026-06-26 | [../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md](../../tasks/2026-06-24-1519-greentown-realestate-recon/retrospective.md) | target-realestate-noauth-material-matrix | 授权赏金无登录态收束 | P0/P1 可执行项归零时应生成材料矩阵、第一步验证和不要重复清单 | 不要用低 ROI 固定路径填充时间；无账号/对象/包体/回调材料时不提交 token/写入/导出 |
+| 2026-06-27 | [../../tasks/2026-06-27-0134-ai1tools-bounty/retrospective.md](../../tasks/2026-06-27-0134-ai1tools-bounty/retrospective.md) | target-paid-ai-tools-noauth-material-blocked | 授权赏金付费工具站 Web/API 高危优先测试 | HEAD 405 会让自动 httpx/管线误判为空，需 curl GET + katana 手工补齐；后台公开前端、支付发卡、卡密工具、文件处理、历史 URL/公开索引和未登录核心管理动作应分别用最小矩阵闭合；支付字段篡改必须继续查订单状态和取卡结果，HTTP 明文访问需结合相对 API/HSTS/Location 记录为传输加固项；功能页和 JS 静态差量需检查新 API/source map/环境域/密钥样式字符串、DOM sink 和 `_blank` URL 是否攻击者可控；CORS 要覆盖恶意 Origin、`null`、同源、后缀绕过和预检 | 不要把公开后台前端、robots 暴露路径、未支付订单、客户端 paid/amount/pay_url 字段、API 路径名、静态敬请期待页、纯前端 wordcount、HTTP 缺强制跳转、CORS 同源 allowlist 正常拒绝恶意 Origin、`localStorage.card_key` 无 XSS 前置、搜索引擎噪声或自动候选噪声包装成中高危；剩余高收益方向需后台账号、已支付测试订单或合法低价值卡密 |
+| 2026-06-27 | [../../tasks/2026-06-27-0134-ai1tools-bounty/retrospective.md](../../tasks/2026-06-27-0134-ai1tools-bounty/retrospective.md) | target-paid-callback-signature-boundary | 授权赏金支付回调/通知签名边界 | 支付回调先用小字典定位真实 notify/callback 入口；命中 POST-only 入口后，一次无效签名成功通知即可闭合签名拒绝、限频和后置订单/发卡状态 | 不要在签名拒绝且订单仍 pending 后重复构造同类 paid/status 成功通知；真实回调重放、幂等、金额绑定和退款权益回收需已支付订单或支付平台通知样本 |
+| 2026-07-06 | [../../tasks/2026-07-06-1530-huali-wajia-asset-accounts/retrospective.md](../../tasks/2026-07-06-1530-huali-wajia-asset-accounts/retrospective.md) | target-cloud-resource-xlsx | Excel 云资源清单离线资产建模 | 只有 IP/ELB/中间件的资源表应先按系统/角色/测试对象合并账号需求；生产 DB/Redis 凭据降为专项材料；Host/域名路由表通常比逐主机账号更关键 | 不要让关键词自动分类直接决定 P0/P1；短字符串可能误命中无关业务模块，账号清单必须人工复核 |

@@ -280,7 +280,7 @@ Java.perform(function() {
 - 自动 dump 所有 ClassLoader 加载的 dex
 
 方法 2: Frida DEX Dump
-- frida -U -f com.target.app -l dex_dump.js
+- frida -U -f com.example.app -l dex_dump.js
 - 在 DexFile::OpenMemory 处 hook，dump 内存中的 dex
 
 方法 3: BlackDex

@@ -1,0 +1,232 @@
+{
+  "schema_version": "2.0",
+  "capabilities": [
+    {
+      "id": "browser.interactive",
+      "kind": "mcp",
+      "provides": [
+        "navigation",
+        "form_interaction",
+        "screenshot",
+        "browser_state",
+        "network_observation"
+      ],
+      "fallbacks": [
+        {
+          "capability": "cli.http",
+          "limitations": [
+            "no_ui_state",
+            "no_browser_semantics"
+          ]
+        }
+      ],
+      "availability_requires": [
+        "installed",
+        "configured",
+        "reachable",
+        "healthy",
+        "permitted",
+        "material_ready"
+      ],
+      "detectors": {
+        "commands": [
+          "playwright"
+        ],
+        "environment": [
+          "CYBERTEST_BROWSER_PROVIDER"
+        ],
+        "input_aliases": [
+          "browser",
+          "browser-mcp",
+          "playwright"
+        ]
+      }
+    },
+    {
+      "id": "http.replay",
+      "kind": "mcp",
+      "provides": [
+        "request_replay",
+        "history_query",
+        "authentication_matrix",
+        "differential_compare"
+      ],
+      "fallbacks": [
+        {
+          "capability": "cli.http",
+          "limitations": [
+            "no_proxy_history",
+            "manual_session_correlation"
+          ]
+        }
+      ],
+      "availability_requires": [
+        "installed",
+        "configured",
+        "reachable",
+        "healthy",
+        "permitted",
+        "material_ready"
+      ],
+      "detectors": {
+        "commands": [],
+        "environment": [
+          "CYBERTEST_HTTP_REPLAY_PROVIDER"
+        ],
+        "input_aliases": [
+          "burp",
+          "burp-mcp",
+          "http-replay"
+        ]
+      }
+    },
+    {
+      "id": "js.cdp",
+      "kind": "mcp",
+      "provides": [
+        "runtime_parameter_observation",
+        "network_observation",
+        "source_map",
+        "hook",
+        "ast"
+      ],
+      "fallbacks": [
+        {
+          "capability": "browser.interactive",
+          "limitations": [
+            "no_hook",
+            "no_runtime_ast"
+          ]
+        }
+      ],
+      "availability_requires": [
+        "installed",
+        "configured",
+        "reachable",
+        "healthy",
+        "permitted",
+        "material_ready"
+      ],
+      "detectors": {
+        "commands": [
+          "jshook"
+        ],
+        "environment": [
+          "CYBERTEST_JS_CDP_PROVIDER"
+        ],
+        "input_aliases": [
+          "cdp",
+          "jshook",
+          "jshook-mcp"
+        ]
+      }
+    },
+    {
+      "id": "http.capture",
+      "kind": "mcp_or_cli",
+      "provides": [
+        "traffic_capture",
+        "session_grouping",
+        "protocol_observation",
+        "request_response_correlation"
+      ],
+      "fallbacks": [
+        {
+          "capability": "http.replay",
+          "limitations": [
+            "no_raw_packet_capture"
+          ]
+        },
+        {
+          "capability": "cli.http",
+          "limitations": [
+            "single_request_only"
+          ]
+        }
+      ],
+      "availability_requires": [
+        "installed",
+        "configured",
+        "reachable",
+        "healthy",
+        "permitted",
+        "material_ready"
+      ],
+      "detectors": {
+        "commands": [
+          "tshark",
+          "tcpdump"
+        ],
+        "environment": [
+          "CYBERTEST_HTTP_CAPTURE_PROVIDER"
+        ],
+        "input_aliases": [
+          "anything-analyzer",
+          "capture",
+          "packet-capture"
+        ]
+      }
+    },
+    {
+      "id": "oast.callback",
+      "kind": "cli_or_service",
+      "provides": [
+        "unique_callback",
+        "dns_observation",
+        "http_observation",
+        "callback_correlation"
+      ],
+      "fallbacks": [],
+      "unavailable_action": "blocked_need_material",
+      "availability_requires": [
+        "installed",
+        "configured",
+        "reachable",
+        "healthy",
+        "permitted",
+        "material_ready"
+      ],
+      "detectors": {
+        "commands": [
+          "interactsh-client"
+        ],
+        "environment": [
+          "CYBERTEST_OAST_PROVIDER"
+        ],
+        "input_aliases": [
+          "interactsh",
+          "oast",
+          "oast-callback"
+        ]
+      }
+    },
+    {
+      "id": "cli.http",
+      "kind": "cli",
+      "provides": [
+        "http_request",
+        "header_control",
+        "body_capture",
+        "tls_override"
+      ],
+      "fallbacks": [],
+      "availability_requires": [
+        "installed",
+        "healthy",
+        "permitted",
+        "material_ready"
+      ],
+      "detectors": {
+        "commands": [
+          "curl",
+          "http",
+          "wget"
+        ],
+        "environment": [],
+        "input_aliases": [
+          "cli-http"
+        ]
+      }
+    }
+  ]
+}

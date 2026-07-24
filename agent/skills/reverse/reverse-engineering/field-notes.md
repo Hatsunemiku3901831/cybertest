@@ -365,7 +365,7 @@ Fork/pipe IPC where parent writes data and exits, child reads and continues. Rea
 
 ### Signed Cookie Key Reuse: access token to admin_session
 
-**Case:** `class.pangbaoba.me` CTF homework system. Public `/access/<token>` route set a signed `student_gate`; the same access token also worked as the HMAC key for `admin_session`, allowing direct admin API access by forging the exact session payload shape.
+**Case:** `challenge.example.invalid` CTF homework system. Public `/access/<token>` route set a signed `student_gate`; the same access token also worked as the HMAC key for `admin_session`, allowing direct admin API access by forging the exact session payload shape.
 
 **Core pattern:** A visible invite/access token is reused as a server-side signing secret. If one signed cookie can be validated offline, test whether sibling auth cookies use the same signing scheme and key.
 
@@ -408,7 +408,7 @@ print(f"admin_session={payload_b64}.{sig_b64}")
 ## Web Phishing Infrastructure
 
 ### Phishing Panel: {target_domain_a} / {target_domain_b}
-**完整分析**: [phishing-case-study.md](phishing-case-study.md)
+**完整分析**：原始案例未随可复用 skill 分发；本节只保留匿名化技术摘要。
 
 Two-server phishing infrastructure impersonating a government agency. Full victim control system with server-driven status code redirection.
 

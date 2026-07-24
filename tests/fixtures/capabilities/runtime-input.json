@@ -1,0 +1,25 @@
+{
+  "capabilities": [
+    {
+      "capability": "browser.interactive",
+      "available": true,
+      "provider": "browser-mcp",
+      "path": null,
+      "health": "ok"
+    },
+    {
+      "capability": "http.replay",
+      "available": false,
+      "provider": "burp-mcp",
+      "path": null,
+      "health": "unavailable"
+    },
+    {
+      "capability": "oast",
+      "available": true,
+      "provider": "interactsh-client",
+      "path": "interactsh-client",
+      "health": "degraded"
+    }
+  ]
+}

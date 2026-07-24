@@ -1,0 +1,32 @@
+{
+  "name": "no-match",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "triage",
+    "category": "information",
+    "target_types": ["web"],
+    "technologies": ["html"],
+    "endpoint_traits": ["public-page"],
+    "business_objects": ["public-content"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["public_to_public"],
+    "observed_signals": ["public_marketing_page"],
+    "suspected_control_gaps": [],
+    "auth_contexts": ["anonymous"],
+    "evidence_stage": "route",
+    "available_materials": [],
+    "available_capabilities": [],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {
+    "max_safe_validation_level": "readonly",
+    "allowed_operation_types": ["read"]
+  },
+  "expected": {
+    "route_status": "route_gap",
+    "top1": null
+  }
+}

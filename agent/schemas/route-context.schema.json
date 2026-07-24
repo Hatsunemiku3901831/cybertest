@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybertest.invalid/schemas/route-context.schema.json",
+  "title": "Cybertest RouteContext",
+  "type": "object",
+  "required": [
+    "task_kind",
+    "phase",
+    "target_types",
+    "technologies",
+    "business_objects",
+    "operation_types",
+    "trust_boundaries",
+    "observed_signals",
+    "evidence_stage",
+    "available_materials",
+    "available_capabilities",
+    "excluded_routes"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "task_kind": {"type": "string"},
+    "phase": {
+      "enum": ["maintenance", "development", "intake", "recon", "triage", "validation", "closure", "retrospective"]
+    },
+    "category": {"type": "string"},
+    "target_types": {"type": "array", "items": {"type": "string"}},
+    "technologies": {"type": "array", "items": {"type": "string"}},
+    "endpoint_traits": {"type": "array", "items": {"type": "string"}},
+    "business_objects": {"type": "array", "items": {"type": "string"}},
+    "operation_types": {"type": "array", "items": {"type": "string"}},
+    "trust_boundaries": {"type": "array", "items": {"type": "string"}},
+    "observed_signals": {"type": "array", "items": {"type": "string"}},
+    "suspected_control_gaps": {"type": "array", "items": {"type": "string"}},
+    "auth_contexts": {"type": "array", "items": {"type": "string"}},
+    "evidence_stage": {
+      "enum": ["signal", "route", "handler", "business_logic", "object_read", "state_change", "impact"]
+    },
+    "available_materials": {"type": "array", "items": {"type": "string"}},
+    "available_capabilities": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": [
+              "capability",
+              "available",
+              "source_compatibility"
+            ],
+            "properties": {
+              "capability": {"type": "string"},
+              "available": {"type": "boolean"},
+              "health": {"type": "string"},
+              "source_compatibility": {"const": "v1"}
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "capability",
+              "installed",
+              "configured",
+              "reachable",
+              "healthy",
+              "permitted",
+              "material_ready",
+              "available",
+              "health",
+              "source_compatibility"
+            ],
+            "properties": {
+              "capability": {"type": "string"},
+              "installed": {"type": "boolean"},
+              "configured": {"type": "boolean"},
+              "reachable": {"type": "boolean"},
+              "healthy": {"type": "boolean"},
+              "permitted": {"type": "boolean"},
+              "material_ready": {"type": "boolean"},
+              "available": {"type": "boolean"},
+              "health": {
+                "enum": [
+                  "unknown",
+                  "installed_only",
+                  "configured",
+                  "reachable",
+                  "degraded",
+                  "ok",
+                  "unavailable"
+                ]
+              },
+              "source_compatibility": {
+                "enum": ["v2", "detector_v2"]
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "excluded_routes": {
+      "type": "array",
+      "items": {"type": ["string", "object"]}
+    },
+    "negative_control_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tactic_id", "outcome"],
+        "properties": {
+          "tactic_id": {"type": "string"},
+          "outcome": {"type": "string"},
+          "evidence_ref": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "previous_route_decisions": {"type": "array", "items": {"type": "string"}},
+    "policy": {"type": "object"}
+  },
+  "additionalProperties": false
+}

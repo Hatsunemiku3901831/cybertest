@@ -1,0 +1,33 @@
+{
+  "name": "capability-missing",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "authorization",
+    "target_types": ["web", "api"],
+    "technologies": ["browser", "rest"],
+    "endpoint_traits": ["object-detail"],
+    "business_objects": ["project"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["user_to_user"],
+    "observed_signals": ["object_id", "ui_selector", "cross_account_object"],
+    "suspected_control_gaps": ["object_ownership_check"],
+    "auth_contexts": ["controlled-user-a", "controlled-user-b"],
+    "evidence_stage": "route",
+    "available_materials": ["controlled_user_a", "controlled_user_b", "nonempty_self_object"],
+    "available_capabilities": [],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {
+    "max_safe_validation_level": "readonly",
+    "allowed_operation_types": ["read"]
+  },
+  "expected": {
+    "route_status": "blocked_need_capability",
+    "top1": null,
+    "resume_tactic_id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+  }
+}

@@ -11,12 +11,15 @@
 
 ## 当前记录
 
-- completed_pattern_batches: 1
-- completed_tactic_batches: 0
-- completed_full_batches: 0
+- completed_pattern_batches: 2
+- completed_tactic_batches: 1
+- completed_full_batches: 1
 
 ## 批次记录
 
 | 类型 | 复盘范围 | 状态 | 输出文件 | 备注 |
 |---|---|---|---|---|
 | pattern | 最近 10 个具备完成复盘的任务 | completed | [pattern/pattern-memory-2026-05-26-recent-10.md](pattern/pattern-memory-2026-05-26-recent-10.md) | batch_id: pattern-memory-2026-05-26-recent-10 |
+| pattern | M4 首批 3 个匿名 case 与当前 case index | completed | [pattern/pattern-memory-2026-07-24-case-evidence-contracts.md](pattern/pattern-memory-2026-07-24-case-evidence-contracts.md) | batch_id: pattern-memory-2026-07-24-case-evidence-contracts |
+| tactic | M4 首批 3 个匿名 case 与当前复盘索引 | completed | [tactic/tactic-memory-2026-07-24-evidence-contracts.md](tactic/tactic-memory-2026-07-24-evidence-contracts.md) | batch_id: tactic-memory-2026-07-24-evidence-contracts |
+| full | M4 首批 case、索引与证据契约 tactic memory | completed | [full/full-distillation-2026-07-24-knowledge-closure.md](full/full-distillation-2026-07-24-knowledge-closure.md) | batch_id: full-distillation-2026-07-24-knowledge-closure |

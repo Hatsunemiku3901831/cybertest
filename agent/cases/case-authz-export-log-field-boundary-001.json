@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+  "title": "导出与日志读取面的字段授权边界",
+  "summary": "匿名迁移案例契约：比较同一受控低权限身份在正常读取面、显式拒绝读取面、最小导出和操作日志中的字段集合；它定义验证方法，不代表任何真实目标或已确认结果。",
+  "scene": "normal-view-to-export-log-field-boundary",
+  "target_type": [
+    "admin-api",
+    "single-page-application",
+    "web-api"
+  ],
+  "technology": [
+    "csv",
+    "rest",
+    "xlsx"
+  ],
+  "business_object": [
+    "contact-field",
+    "export-record",
+    "operation-log"
+  ],
+  "operation_type": [
+    "export",
+    "read"
+  ],
+  "trust_boundary": [
+    "normal-view-to-export-dto",
+    "role-to-sensitive-field"
+  ],
+  "observed_signal": [
+    "export-or-log-route-is-visible",
+    "field-set-differs-between-read-surfaces",
+    "normal-read-denies-a-protected-field"
+  ],
+  "root_cause_family": "field_level_authorization_bypass",
+  "evidence_mode": [
+    "field-set-differential",
+    "minimal-export",
+    "zero-raw-value"
+  ],
+  "required_material": [
+    "controlled-low-privilege-account",
+    "minimal-controlled-object-scope",
+    "protected-field-denial-baseline"
+  ],
+  "matched_tactics": [
+    "AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "same-account-normal-field-baseline",
+      "description": "先记录同一账号在正常 UI/API 中可见的字段名、类型和非空形态。"
+    },
+    {
+      "id": "explicit-denial-control",
+      "description": "用同一账号确认受保护字段或权威读取面确实拒绝，建立字段授权负控。"
+    },
+    {
+      "id": "minimal-structural-diff",
+      "description": "只处理一行或最小页，比较导出 DTO 或日志中的字段集合，不落盘业务原值。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "header-only-export",
+      "description": "只有文件头或空数据行不能证明任何受保护字段被读取。"
+    },
+    {
+      "id": "public-or-normal-field",
+      "description": "公开字段或同一账号在正常页面已可见的字段不属于字段授权旁路。"
+    },
+    {
+      "id": "declared-total-only",
+      "description": "服务端声明总量不能替代实际最小样本与字段差分。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "导出、操作日志和正常读取面使用一致的字段级授权、对象范围过滤与敏感日志脱敏。",
+    "suspected_missing_control": "导出 DTO 或日志消费者只检查入口权限，没有继承正常读取面的字段级授权。",
+    "impact_boundary": "这是迁移验证契约；只有最小样本中出现超出同账号正常边界的实际敏感字段才支持候选，不能由空导出、公共字段或总量外推泄露。"
+  },
+  "request_matrix": [
+    {
+      "id": "normal-view",
+      "variant": "baseline",
+      "auth_context": "controlled-low-privilege-user",
+      "mutation": "normal-ui-or-api-read",
+      "expected_observation": "得到同账号正常可见字段集合与最小非空结构。"
+    },
+    {
+      "id": "protected-field-denial",
+      "variant": "negative-control",
+      "auth_context": "controlled-low-privilege-user",
+      "mutation": "protected-field-or-authoritative-read",
+      "expected_observation": "同账号在权威读取面无法取得候选受保护字段。"
+    },
+    {
+      "id": "minimal-export-or-log",
+      "variant": "candidate-probe",
+      "auth_context": "controlled-low-privilege-user",
+      "mutation": "one-row-or-minimal-page",
+      "expected_observation": "只在字段集合超出正常读取基线时形成进一步验证信号。"
+    },
+    {
+      "id": "field-set-readback",
+      "variant": "readback",
+      "auth_context": "controlled-low-privilege-user",
+      "mutation": "zero-raw-value-structural-summary",
+      "expected_observation": "仅记录字段名、类型、非空、长度桶、实际行数和唯一实体数。"
+    }
+  ],
+  "false_positive_filters": [
+    "显式获权日志与正常读取具有相同字段范围时不构成字段旁路。",
+    "空导出、只有表头或统一成功包不能证明数据读取。",
+    "公开目录字段和同账号正常页面可见字段必须从差集中剔除。",
+    "服务端声明总数、实际样本行数和唯一实体数必须分别记录。"
+  ],
+  "evidence_invariants": [
+    "正常读取、拒绝负控和候选探针使用同一账号与同一最小对象范围。",
+    "除读取面外，过滤条件、分页和业务对象保持一致。",
+    "只保存字段结构与数量分层，不保存真实联系方式、日志正文或其它业务原值。",
+    "结论依赖实际非空数据行中的字段差异，不依赖状态码、路由名称或文件扩展名。"
+  ],
+  "stop_conditions": [
+    "首个超出正常读取边界的受保护字段形成稳定差分后停止扩大。",
+    "正常读取基线为空、账号健康失败或对象范围不一致时停止并转为材料阻塞。",
+    "候选字段属于公开信息或同账号显式权限范围时停止并按误报边界归档。"
+  ],
+  "rollback": {
+    "required": false,
+    "method": "只执行最小只读查询；不触发异步批量导出，不保存含业务原值的制品。",
+    "success_criteria": "没有业务对象、权限、任务或服务端状态变化，且本地不保留原始导出内容。"
+  },
+  "sources": [
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 Export/Log Field Boundary 家族规定的正常读取面、导出、日志与 DTO 字段差分。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

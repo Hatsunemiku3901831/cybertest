@@ -1,0 +1,24 @@
+{
+  "state": {
+    "domain": "example.invalid",
+    "mode": "quick",
+    "phase_outputs": {
+      "subfinder": {"ok": true},
+      "dnsx": {"ok": true},
+      "httpx": {"ok": true},
+      "katana": {"ok": true},
+      "gf": {"ok": true},
+      "nuclei": {"ok": true},
+      "candidate_queue": {"ok": true}
+    }
+  },
+  "documents": {
+    "subfinder": {"ok": true, "subdomains": []},
+    "dnsx": {"ok": true, "targets": ["example.invalid"], "results": []},
+    "httpx": {"ok": true, "targets": ["example.invalid"], "results": []},
+    "katana": {"ok": true, "results": []},
+    "gf": {"ok": true, "patterns": []},
+    "nuclei": {"ok": true, "results": []},
+    "candidate_queue": {"ok": true, "candidates": []}
+  }
+}

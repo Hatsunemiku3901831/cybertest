@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "capabilities": [
+    {
+      "capability": "browser.interactive",
+      "installed": true,
+      "configured": true,
+      "reachable": true,
+      "healthy": true,
+      "permitted": true,
+      "material_ready": true,
+      "available": true,
+      "provider": "browser-mcp",
+      "health": "ok",
+      "checked_at": "2026-07-24T00:00:00Z"
+    },
+    {
+      "capability": "http.replay",
+      "installed": true,
+      "configured": true,
+      "reachable": false,
+      "healthy": false,
+      "permitted": true,
+      "material_ready": true,
+      "available": false,
+      "provider": "burp-mcp",
+      "health": "degraded",
+      "checked_at": "2026-07-24T00:00:00Z"
+    },
+    {
+      "capability": "cli.http",
+      "installed": true,
+      "configured": false,
+      "reachable": false,
+      "healthy": true,
+      "permitted": true,
+      "material_ready": true,
+      "available": true,
+      "provider": "curl",
+      "path": "curl",
+      "health": "ok",
+      "checked_at": "2026-07-24T00:00:00Z"
+    }
+  ]
+}

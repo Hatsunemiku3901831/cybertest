@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+  "title": "客户令牌跨越管理路由信任边界",
+  "summary": "通过缺失、固定无效、受控低权限令牌和合法管理上下文的同路由接受矩阵，区分路由公开、令牌解析成功与低权限主体获得管理数据三种不同事实。",
+  "scene": "customer-token-to-admin-route",
+  "target_type": [
+    "api-gateway",
+    "web-api"
+  ],
+  "technology": [
+    "bearer-token",
+    "jwt",
+    "rest"
+  ],
+  "business_object": [
+    "administrative-record",
+    "customer-directory"
+  ],
+  "operation_type": [
+    "list",
+    "read"
+  ],
+  "trust_boundary": [
+    "customer-identity-to-administration-service",
+    "token-validation-to-route-authorization"
+  ],
+  "observed_signal": [
+    "client-token-accepted-by-administration-route",
+    "missing-and-fixed-invalid-token-are-rejected",
+    "same-token-family-used-by-different-service-roles"
+  ],
+  "root_cause_family": "cross_service_token_trust",
+  "evidence_mode": [
+    "authentication-differential",
+    "minimal-pagination",
+    "negative-control"
+  ],
+  "required_material": [
+    "controlled-low-privilege-token",
+    "fixed-invalid-token",
+    "known-protected-read-route",
+    "optional-controlled-admin-context"
+  ],
+  "matched_tactics": [
+    "AUTH-CUSTOMER-JWT-TO-ADMIN-001",
+    "AUTH-JWT-ACCEPTANCE-MATRIX-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "same-route-acceptance-matrix",
+      "description": "所有变体命中同一只读管理路由，只改变认证材料和头位置。"
+    },
+    {
+      "id": "minimal-nonempty-sample",
+      "description": "固定最小分页并只记录字段类型、非空、长度和服务端声明数量级。"
+    },
+    {
+      "id": "claim-vs-enforcement-separation",
+      "description": "把令牌声明、验签接受、路由授权和业务对象返回分开记录。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "static-jwt-decode",
+      "description": "仅解码令牌声明不能证明目标服务接受或授权该主体。"
+    },
+    {
+      "id": "public-status-route",
+      "description": "公共健康或状态接口返回 2xx 不能证明管理路由存在认证缺口。"
+    },
+    {
+      "id": "missing-control-matrix",
+      "description": "只有候选令牌成功而没有缺失和固定无效令牌负控时无法排除匿名公开。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "管理服务除验证令牌签名外，还校验受众、签发环境、主体类型、角色和路由权限。",
+    "suspected_missing_control": "管理路由复用客户令牌的信任材料，却没有执行管理主体和权限前置检查。",
+    "impact_boundary": "只证明最小只读样本；服务端声明总量不等于已读取行数，未验证写入、导出或账户操作。"
+  },
+  "request_matrix": [
+    {
+      "id": "missing-token",
+      "variant": "negative-control",
+      "auth_context": "none",
+      "mutation": "authorization-header-absent",
+      "expected_observation": "同一路由在缺失认证材料时拒绝业务数据。"
+    },
+    {
+      "id": "fixed-invalid-token",
+      "variant": "negative-control",
+      "auth_context": "synthetic-invalid",
+      "mutation": "fixed-format-invalid-token",
+      "expected_observation": "同一路由在无效材料时停在认证层。"
+    },
+    {
+      "id": "controlled-customer-token",
+      "variant": "candidate-probe",
+      "auth_context": "controlled-customer-a",
+      "mutation": "valid-low-privilege-token",
+      "expected_observation": "仅在返回非空管理业务字段时证明跨信任边界接受。"
+    },
+    {
+      "id": "alternate-header-position",
+      "variant": "negative-control",
+      "auth_context": "controlled-customer-a",
+      "mutation": "same-token-in-unsupported-header",
+      "expected_observation": "确认实际认证消费位置并排除旁路头或缓存误判。"
+    },
+    {
+      "id": "controlled-admin-context",
+      "variant": "positive-control",
+      "auth_context": "controlled-admin-if-available",
+      "mutation": "none",
+      "expected_observation": "用于校准正常响应形状；缺少该材料时不阻止确认低权限与无效材料的稳定差分。"
+    }
+  ],
+  "false_positive_filters": [
+    "令牌能够离线解码不等于被目标服务验签或授权。",
+    "公共接口、登录页或统一 2xx 错误包不属于管理数据接受证据。",
+    "服务端声明总记录数必须与实际抽样行数分开表述。",
+    "仅返回空列表、字段模板或公开字典时不得升级为管理数据泄露。"
+  ],
+  "evidence_invariants": [
+    "除认证材料和指定头位置外，方法、路径、查询、分页和请求体保持一致。",
+    "固定无效令牌在所有复测中保持相同，避免随机格式导致不同解析分支。",
+    "动态样本固定为最小分页，不翻页、不导出、不保存可枚举业务值。",
+    "确认事实至少包含缺失拒绝、无效拒绝和受控低权限令牌返回非空业务字段。"
+  ],
+  "stop_conditions": [
+    "首个非空管理业务样本形成稳定三态差分后立即停止扩大读取。",
+    "任一负控也返回相同业务数据时停止并重新分类为匿名公开或缓存候选。",
+    "受控令牌失效或账号健康无法确认时停止并转为材料阻塞。"
+  ],
+  "rollback": {
+    "required": false,
+    "method": "只执行最小只读请求，不创建、修改、导出或删除对象。",
+    "success_criteria": "没有服务端状态变化、异步任务、下载制品或持久化测试对象。"
+  },
+  "sources": [
+    {
+      "source_alias": "anonymous-retrospective-index",
+      "relative_path": "agent/retrospectives/index.md",
+      "sha256": "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+      "selection": "选择包含无认证、错误材料、受控低权限材料和最小分页差分的匿名摘要。"
+    },
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 Customer JWT to Admin 家族规定的接受矩阵、分页最小化和数据量分层。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

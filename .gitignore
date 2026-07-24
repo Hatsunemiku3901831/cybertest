@@ -1,2 +1,27 @@
 /tasks/
 /tool/.fofa_key
+
+# Local operating-system and IDE state
+.DS_Store
+.idea/
+
+# Python caches and local environments
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+
+# Local secrets and runtime capability cache
+.env
+.env.*
+!.env.example
+/.cybertest/capabilities.json
+/agent/skills/reverse/tool-index.md
+/agent/skills/reverse/tool-index.json
+
+# Restricted raw evidence must never enter Git
+**/evidence/restricted/

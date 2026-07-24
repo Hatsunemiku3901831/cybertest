@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybertest.invalid/schemas/route-decision.schema.json",
+  "title": "Cybertest RouteDecision",
+  "type": "object",
+  "required": [
+    "route_version",
+    "decision_id",
+    "route_status",
+    "phase",
+    "primary_skill",
+    "supporting_skills",
+    "matched_tactics",
+    "deferred_tactics",
+    "required_capabilities",
+    "material_requirements",
+    "next_discriminating_action",
+    "validation_contract",
+    "stop_conditions",
+    "do_not_overclaim",
+    "reroute_triggers",
+    "resume_tactic_id",
+    "trace"
+  ],
+  "properties": {
+    "route_version": {"const": "1.0"},
+    "decision_id": {"type": "string", "pattern": "^RD-[A-F0-9]{12}$"},
+    "route_status": {
+      "enum": ["matched", "matched_with_fallback", "route_gap", "blocked_need_material", "blocked_need_capability", "policy_conflict"]
+    },
+    "phase": {"type": "string"},
+    "primary_skill": {"type": "string"},
+    "supporting_skills": {"type": "array", "items": {"type": "string"}, "maxItems": 2},
+    "matched_tactics": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "score", "match_reasons", "contradictions", "load_mode"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "score": {"type": "integer", "minimum": 0, "maximum": 100},
+          "match_reasons": {"type": "array", "items": {"type": "string"}},
+          "contradictions": {"type": "array", "items": {"type": "string"}},
+          "load_mode": {"enum": ["full", "summary"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "deferred_tactics": {"type": "array", "items": {"type": "object"}},
+    "required_capabilities": {"type": "array", "items": {"type": "string"}},
+    "material_requirements": {"type": "array", "items": {"type": "object"}},
+    "next_discriminating_action": {"type": "string"},
+    "validation_contract": {"type": "object"},
+    "stop_conditions": {"type": "array", "items": {"type": "string"}},
+    "do_not_overclaim": {"type": "string"},
+    "reroute_triggers": {"type": "array", "items": {"type": "string"}},
+    "resume_tactic_id": {"type": ["string", "null"]},
+    "fallback": {"type": ["object", "null"]},
+    "trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["event", "outcome"],
+        "properties": {
+          "event": {"type": "string"},
+          "tactic_id": {"type": "string"},
+          "outcome": {"type": "string"},
+          "score": {"type": "integer"},
+          "reasons": {"type": "array"},
+          "fallbacks": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "properties": {
+            "route_status": {
+              "enum": ["blocked_need_material", "blocked_need_capability"]
+            },
+            "resume_tactic_id": {"type": "string", "minLength": 1}
+          }
+        },
+        {
+          "properties": {
+            "route_status": {
+              "enum": [
+                "matched",
+                "matched_with_fallback",
+                "route_gap",
+                "policy_conflict"
+              ]
+            },
+            "resume_tactic_id": {"type": "null"}
+          }
+        }
+      ]
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "id": "INTEGRATION-BLIND-SSRF-MEDIA-001",
+  "version": 1,
+  "title": "媒体处理盲 SSRF 独立回连验证",
+  "summary": "为每个请求使用唯一 OAST 路径，分离页面报错、浏览器预读和服务端媒体处理回连。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["web", "api", "spa"],
+    "technologies": ["http", "media", "oast"],
+    "endpoint_traits": ["remote-image", "media-preview", "pdf-render", "remote-import"],
+    "observed_signals": ["remote_url_parameter", "media_user_agent", "range_request", "oast_callback"],
+    "business_objects": ["image", "media", "document", "remote-resource"],
+    "operation_types": ["callback", "read"],
+    "trust_boundaries": ["user_input_to_server_fetch", "browser_to_server"],
+    "evidence_stages": ["signal", "handler", "business_logic", "impact"]
+  },
+  "control_gap": {
+    "category": "ssrf",
+    "operation_type": "callback",
+    "trust_boundary": "user_input_to_server_fetch",
+    "expected_controls": ["scheme_allowlist", "destination_validation", "redirect_revalidation", "network_egress_policy"],
+    "suspected_missing_controls": ["destination_validation", "network_egress_policy"]
+  },
+  "prerequisites": ["使用本任务唯一且可关联单次请求的回调路径。", "排除浏览器、代理和扫描器自身预读。"],
+  "material_requirements": [
+    {"id": "controlled_oast_endpoint", "description": "受控且唯一的回调端点", "required": true}
+  ],
+  "request_matrix": [
+    {"id": "non-resolving-url", "role": "negative_control", "description": "使用不可解析的良性主机建立页面错误基线。"},
+    {"id": "unique-oast-url", "role": "candidate_probe", "description": "使用唯一回调路径，其他参数保持不变。"},
+    {"id": "browser-prefetch-control", "role": "negative_control", "description": "确认浏览器和本地代理不会独立请求该唯一路径。"},
+    {"id": "callback-observation", "role": "readback", "description": "记录回调时序、方法、User-Agent、Range 和源特征。"}
+  ],
+  "expected_observations": ["页面错误与 OAST 命中分别记录。", "只有可归因服务端的唯一回调支持 SSRF 处理器可达。"],
+  "evidence_invariants": ["每个候选使用独立路径。", "不请求内网、metadata 或第三方真实资产。", "浏览器预读负控必须为阴性。"],
+  "false_positive_filters": ["浏览器、扩展、代理或安全扫描器预读。", "页面错误或前端图片加载本身。", "重复缓存回调无法关联当前请求。"],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "task",
+  "readonly_fallback": false,
+  "stop_conditions": ["首次稳定服务端回连后停止扩大目的地址。", "无法排除客户端预读时停止并降级。"],
+  "rollback": {"required": false, "steps": []},
+  "root_cause_family": "server_side_remote_fetch_validation",
+  "affected_instance_key_fields": ["scheme_host_port", "route_template", "parameter", "processor_family"],
+  "rating_boundary": "外部受控回连只证明服务端请求可控；内网或云元数据影响必须另证。",
+  "do_not_overclaim": "不得把页面报错、浏览器请求或一次不可归因回调写成内网访问、metadata 泄露或 RCE。",
+  "reopen_conditions": ["获得可归因回调能力。", "发现新的重定向、协议或媒体处理器证据。"],
+  "required_capabilities": [
+    {"id": "oast.callback", "required": true, "fallbacks": []},
+    {"id": "http.replay", "required": true, "fallbacks": ["cli.http"]}
+  ],
+  "source_cases": [
+    "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": ["browser_prefetch_confirmed", "callback_not_correlated"],
+  "next_discriminating_action": "使用唯一 OAST 路径并建立不可解析 URL 与浏览器预读负控。",
+  "reroute_triggers": ["回调来自浏览器或代理。", "处理器只接受本地上传。", "出现重定向、Range 或媒体 User-Agent 新证据。"],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

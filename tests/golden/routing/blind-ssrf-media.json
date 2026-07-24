@@ -1,0 +1,26 @@
+{
+  "name": "blind-ssrf-media",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "ssrf",
+    "target_types": ["api"],
+    "technologies": ["http", "media", "oast"],
+    "endpoint_traits": ["media-preview"],
+    "business_objects": ["media"],
+    "operation_types": ["callback"],
+    "trust_boundaries": ["user_input_to_server_fetch"],
+    "observed_signals": ["remote_url_parameter", "media_user_agent", "oast_callback"],
+    "suspected_control_gaps": ["destination_validation", "network_egress_policy"],
+    "auth_contexts": ["controlled-user"],
+    "evidence_stage": "handler",
+    "available_materials": ["controlled_oast_endpoint"],
+    "available_capabilities": ["oast.callback", "http.replay"],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {"max_safe_validation_level": "readonly", "allowed_operation_types": ["callback"]},
+  "expected": {"route_status": "matched", "top1": "INTEGRATION-BLIND-SSRF-MEDIA-001"}
+}

@@ -1,0 +1,1225 @@
+{
+  "case_count": 9,
+  "case_schema_version": "1.0",
+  "cases": [
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "administrative-record",
+        "customer-directory"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 5,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "authentication-differential",
+        "minimal-pagination",
+        "negative-control"
+      ],
+      "id": "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+      "matched_tactics": [
+        "AUTH-CUSTOMER-JWT-TO-ADMIN-001",
+        "AUTH-JWT-ACCEPTANCE-MATRIX-001"
+      ],
+      "observed_signal": [
+        "client-token-accepted-by-administration-route",
+        "missing-and-fixed-invalid-token-are-rejected",
+        "same-token-family-used-by-different-service-roles"
+      ],
+      "operation_type": [
+        "list",
+        "read"
+      ],
+      "relative_path": "agent/cases/case-auth-customer-jwt-admin-001.json",
+      "required_material": [
+        "controlled-low-privilege-token",
+        "fixed-invalid-token",
+        "known-protected-read-route",
+        "optional-controlled-admin-context"
+      ],
+      "root_cause_family": "cross_service_token_trust",
+      "scene": "customer-token-to-admin-route",
+      "source_hashes": [
+        "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "agent/retrospectives/index.md",
+          "source_alias": "anonymous-retrospective-index"
+        },
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "通过缺失、固定无效、受控低权限令牌和合法管理上下文的同路由接受矩阵，区分路由公开、令牌解析成功与低权限主体获得管理数据三种不同事实。",
+      "target_type": [
+        "api-gateway",
+        "web-api"
+      ],
+      "technology": [
+        "bearer-token",
+        "jwt",
+        "rest"
+      ],
+      "title": "客户令牌跨越管理路由信任边界",
+      "trust_boundary": [
+        "customer-identity-to-administration-service",
+        "token-validation-to-route-authorization"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "project",
+        "tenant-resource"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 6,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "account-object-mapping",
+        "browser-api-differential",
+        "negative-control"
+      ],
+      "id": "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "matched_tactics": [
+        "AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "observed_signal": [
+        "default-option-contains-object-identifier",
+        "global-selector-lists-unassigned-objects",
+        "object-parameter-can-be-replaced"
+      ],
+      "operation_type": [
+        "list",
+        "read"
+      ],
+      "relative_path": "agent/cases/case-authz-bola-ui-false-positive-001.json",
+      "required_material": [
+        "controlled-account-a",
+        "controlled-account-b-or-authoritative-mapping",
+        "nonempty-self-object",
+        "real-ui-selector"
+      ],
+      "root_cause_family": "bola",
+      "scene": "ui-selector-to-object-authorization",
+      "source_hashes": [
+        "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "agent/retrospectives/index.md",
+          "source_alias": "anonymous-retrospective-index"
+        },
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "使用账号健康、自有非空对象、真实选择器、权威归属映射和交叉对象请求矩阵，过滤默认选项、全局目录和空列表造成的 BOLA 误报。",
+      "target_type": [
+        "single-page-application",
+        "web-api"
+      ],
+      "technology": [
+        "json",
+        "rest",
+        "web-ui"
+      ],
+      "title": "界面默认对象与真实授权边界的分离",
+      "trust_boundary": [
+        "account-to-business-object",
+        "ui-selection-to-server-object-authorization"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "contact-field",
+        "export-record",
+        "operation-log"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 4,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "field-set-differential",
+        "minimal-export",
+        "zero-raw-value"
+      ],
+      "id": "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+      "matched_tactics": [
+        "AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "observed_signal": [
+        "export-or-log-route-is-visible",
+        "field-set-differs-between-read-surfaces",
+        "normal-read-denies-a-protected-field"
+      ],
+      "operation_type": [
+        "export",
+        "read"
+      ],
+      "relative_path": "agent/cases/case-authz-export-log-field-boundary-001.json",
+      "required_material": [
+        "controlled-low-privilege-account",
+        "minimal-controlled-object-scope",
+        "protected-field-denial-baseline"
+      ],
+      "root_cause_family": "field_level_authorization_bypass",
+      "scene": "normal-view-to-export-log-field-boundary",
+      "source_hashes": [
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "匿名迁移案例契约：比较同一受控低权限身份在正常读取面、显式拒绝读取面、最小导出和操作日志中的字段集合；它定义验证方法，不代表任何真实目标或已确认结果。",
+      "target_type": [
+        "admin-api",
+        "single-page-application",
+        "web-api"
+      ],
+      "technology": [
+        "csv",
+        "rest",
+        "xlsx"
+      ],
+      "title": "导出与日志读取面的字段授权边界",
+      "trust_boundary": [
+        "normal-view-to-export-dto",
+        "role-to-sensitive-field"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "entitlement-counter",
+        "user-profile"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 5,
+        "rollback_required": true,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "controlled-write",
+        "negative-control",
+        "state-readback"
+      ],
+      "id": "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+      "matched_tactics": [
+        "AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "observed_signal": [
+        "normal-ui-submits-a-field-subset",
+        "response-model-exposes-additional-writable-looking-fields",
+        "whole-object-update-handler"
+      ],
+      "operation_type": [
+        "readback",
+        "update"
+      ],
+      "relative_path": "agent/cases/case-authz-mass-assignment-001.json",
+      "required_material": [
+        "controlled-account",
+        "independent-readback-route",
+        "reversible-test-field",
+        "state-baseline"
+      ],
+      "root_cause_family": "mass_assignment",
+      "scene": "profile-field-write-boundary",
+      "source_hashes": [
+        "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "agent/retrospectives/index.md",
+          "source_alias": "anonymous-retrospective-index"
+        },
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "从正常界面允许字段与服务端对象字段的差集出发，以单字段可逆标记、同形负控、独立回读和精确恢复判断是否存在批量赋值控制缺口。",
+      "target_type": [
+        "web-api"
+      ],
+      "technology": [
+        "json",
+        "rest"
+      ],
+      "title": "资料更新接口的隐藏字段写入边界",
+      "trust_boundary": [
+        "client-allowed-fields-to-server-domain-object",
+        "user-role-to-sensitive-profile-field"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "object",
+        "upload-ticket"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 5,
+        "rollback_required": true,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "controlled-test-object",
+        "state-readback",
+        "ticket-differential"
+      ],
+      "id": "CASE-FILE-GUEST-UPLOAD-TICKET-001",
+      "matched_tactics": [
+        "FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "observed_signal": [
+        "guest-upload-ticket-route",
+        "missing-file-constraints",
+        "public-object-url"
+      ],
+      "operation_type": [
+        "readback",
+        "upload"
+      ],
+      "relative_path": "agent/cases/case-file-guest-upload-ticket-001.json",
+      "required_material": [
+        "controlled-small-file",
+        "exact-delete-or-expiry-path",
+        "known-normal-ticket-request"
+      ],
+      "root_cause_family": "guest_upload_ticket_fail_open",
+      "scene": "guest-upload-ticket-fail-open-contract",
+      "source_hashes": [
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "匿名迁移案例契约：对正常、完全缺省和明确错误的文件约束执行单变量票据差分，再以一个自有小文件闭合写入、精确回读和删除；它不代表真实目标或已确认结果。",
+      "target_type": [
+        "mobile-api",
+        "single-page-application",
+        "web-api"
+      ],
+      "technology": [
+        "multipart",
+        "object-storage",
+        "rest"
+      ],
+      "title": "游客上传票据的缺省约束差分",
+      "trust_boundary": [
+        "anonymous-to-storage",
+        "ticket-to-object-policy"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "paginated-list",
+        "search-result"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 5,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "boolean-oracle",
+        "order-fingerprint",
+        "zero-raw-value"
+      ],
+      "id": "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001",
+      "matched_tactics": [
+        "INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "observed_signal": [
+        "boolean-condition-changes-order",
+        "stable-dual-sort-fingerprint",
+        "user-controlled-sort-expression"
+      ],
+      "operation_type": [
+        "read",
+        "sort"
+      ],
+      "relative_path": "agent/cases/case-injection-order-by-boolean-oracle-001.json",
+      "required_material": [
+        "fixed-minimal-page",
+        "stable-readonly-dataset",
+        "two-distinct-legal-sort-keys"
+      ],
+      "root_cause_family": "order_by_expression_injection",
+      "scene": "order-by-expression-evaluation-contract",
+      "source_hashes": [
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "匿名迁移案例契约：先建立两个合法排序的稳定指纹，再以 true、false、null 三态判断排序参数是否进入表达式求值；它不代表真实目标、数据提取或已确认注入。",
+      "target_type": [
+        "web-api"
+      ],
+      "technology": [
+        "rest",
+        "sql"
+      ],
+      "title": "ORDER BY 表达式的稳定布尔 Oracle",
+      "trust_boundary": [
+        "sort-parameter-to-query-expression"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "document-preview",
+        "remote-image",
+        "remote-resource"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 4,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "callback-correlation",
+        "negative-control",
+        "unique-oast-path"
+      ],
+      "id": "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001",
+      "matched_tactics": [
+        "INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "observed_signal": [
+        "media-user-agent-or-range",
+        "remote-url-parameter",
+        "server-correlated-oast-callback"
+      ],
+      "operation_type": [
+        "callback",
+        "read"
+      ],
+      "relative_path": "agent/cases/case-integration-blind-ssrf-media-001.json",
+      "required_material": [
+        "controlled-oast-endpoint",
+        "one-unique-path-per-request",
+        "prefetch-observation-control"
+      ],
+      "root_cause_family": "server_side_remote_fetch_validation",
+      "scene": "media-processor-oast-attribution-contract",
+      "source_hashes": [
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "匿名迁移案例契约：为每个候选使用唯一受控 OAST 路径，以不可解析地址和浏览器预读为负控，分离页面错误与服务端媒体回连；它不代表真实目标或已确认 SSRF。",
+      "target_type": [
+        "single-page-application",
+        "web-api"
+      ],
+      "technology": [
+        "http",
+        "media-processor",
+        "oast"
+      ],
+      "title": "媒体处理链的盲 SSRF 回连归因",
+      "trust_boundary": [
+        "browser-to-server-fetch",
+        "user-url-to-media-processor"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "application-identity",
+        "integration",
+        "provider-credential"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 4,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "credential-classification",
+        "provider-response-differential",
+        "restricted-material-reference"
+      ],
+      "id": "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001",
+      "matched_tactics": [
+        "INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "observed_signal": [
+        "candidate-server-secret",
+        "equal-length-wrong-secret-control",
+        "official-validation-endpoint"
+      ],
+      "operation_type": [
+        "authenticate",
+        "read"
+      ],
+      "relative_path": "agent/cases/case-integration-third-party-secret-validation-001.json",
+      "required_material": [
+        "candidate-secret-fingerprint-in-restricted-evidence",
+        "confirmed-application-identity",
+        "official-readonly-or-validate-only-endpoint"
+      ],
+      "root_cause_family": "third_party_server_secret_exposure",
+      "scene": "third-party-server-secret-validation-contract",
+      "source_hashes": [
+        "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "agent/retrospectives/index.md",
+          "source_alias": "anonymous-retrospective-index"
+        },
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "匿名迁移案例契约：先区分公开 AppKey 与服务端 Secret，再固定合成目标和请求体，对候选与等长错误材料执行官方只读或 validate-only 差分；它不包含秘密，也不代表已确认控制能力。",
+      "target_type": [
+        "artifact",
+        "mobile-api",
+        "third-party-api"
+      ],
+      "technology": [
+        "hmac",
+        "oauth",
+        "provider-api"
+      ],
+      "title": "第三方服务 Secret 的等长负控验证",
+      "trust_boundary": [
+        "public-artifact-to-provider-control-plane",
+        "server-secret-to-application-identity"
+      ]
+    },
+    {
+      "anonymization_status": "passed",
+      "business_object": [
+        "message",
+        "peer",
+        "terminal"
+      ],
+      "evidence_contract": {
+        "effective_path_count": 3,
+        "evidence_invariant_count": 4,
+        "false_positive_filter_count": 4,
+        "ineffective_path_count": 3,
+        "request_variant_count": 5,
+        "rollback_required": false,
+        "stop_condition_count": 3
+      },
+      "evidence_mode": [
+        "controlled-peer-differential",
+        "protocol-capture",
+        "server-frame-correlation"
+      ],
+      "id": "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001",
+      "matched_tactics": [
+        "INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "observed_signal": [
+        "anonymous-protocol-upgrade",
+        "identity-in-websocket-path",
+        "server-business-frame"
+      ],
+      "operation_type": [
+        "read",
+        "subscribe"
+      ],
+      "relative_path": "agent/cases/case-integration-websocket-path-identity-001.json",
+      "required_material": [
+        "controlled-peer-identity",
+        "offline-handshake-and-frame-structure",
+        "random-high-entropy-identity"
+      ],
+      "root_cause_family": "websocket_path_identity_trust",
+      "scene": "websocket-path-identity-routing-contract",
+      "source_hashes": [
+        "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203"
+      ],
+      "source_identities": [
+        {
+          "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+          "source_alias": "upgrade-plan-case-family"
+        }
+      ],
+      "summary": "匿名迁移案例契约：离线恢复握手和消息结构后，以随机身份、受控身份和同随机身份双连接区分匿名升级、连接替换与真实业务路由；它不代表真实目标或命令执行结果。",
+      "target_type": [
+        "mobile-api",
+        "websocket"
+      ],
+      "technology": [
+        "json",
+        "websocket"
+      ],
+      "title": "WebSocket 路径身份与业务帧路由边界",
+      "trust_boundary": [
+        "anonymous-to-peer-identity",
+        "path-identity-to-business-channel"
+      ]
+    }
+  ],
+  "content_sha256": "12000c2ca89b731efd59528ea2be9e7a4c62e107a89e56439b469bd3662899bf",
+  "dimensions": {
+    "business_object": {
+      "administrative-record": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "application-identity": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "contact-field": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "customer-directory": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "document-preview": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "entitlement-counter": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "export-record": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "integration": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "message": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "object": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "operation-log": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "paginated-list": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "peer": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "project": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "provider-credential": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "remote-image": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "remote-resource": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "search-result": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "tenant-resource": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "terminal": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "upload-ticket": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "user-profile": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ]
+    },
+    "evidence_mode": {
+      "account-object-mapping": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "authentication-differential": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "boolean-oracle": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "browser-api-differential": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "callback-correlation": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "controlled-peer-differential": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "controlled-test-object": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "controlled-write": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "credential-classification": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "field-set-differential": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "minimal-export": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "minimal-pagination": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "negative-control": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "order-fingerprint": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "protocol-capture": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "provider-response-differential": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "restricted-material-reference": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "server-frame-correlation": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "state-readback": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "ticket-differential": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "unique-oast-path": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "zero-raw-value": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ]
+    },
+    "matched_tactics": {
+      "AUTH-CUSTOMER-JWT-TO-ADMIN-001": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "AUTH-JWT-ACCEPTANCE-MATRIX-001": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "AUTHZ-BOLA-UI-FALSE-POSITIVE-001": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "AUTHZ-MASS-ASSIGNMENT-001": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "FILE-GUEST-UPLOAD-TICKET-001": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "INJECTION-ORDER-BY-BOOLEAN-ORACLE-001": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "INTEGRATION-BLIND-SSRF-MEDIA-001": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "INTEGRATION-WEBSOCKET-PATH-IDENTITY-001": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ]
+    },
+    "observed_signal": {
+      "anonymous-protocol-upgrade": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "boolean-condition-changes-order": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "candidate-server-secret": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "client-token-accepted-by-administration-route": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "default-option-contains-object-identifier": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "equal-length-wrong-secret-control": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "export-or-log-route-is-visible": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "field-set-differs-between-read-surfaces": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "global-selector-lists-unassigned-objects": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "guest-upload-ticket-route": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "identity-in-websocket-path": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "media-user-agent-or-range": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "missing-and-fixed-invalid-token-are-rejected": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "missing-file-constraints": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "normal-read-denies-a-protected-field": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "normal-ui-submits-a-field-subset": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "object-parameter-can-be-replaced": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "official-validation-endpoint": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "public-object-url": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "remote-url-parameter": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "response-model-exposes-additional-writable-looking-fields": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "same-token-family-used-by-different-service-roles": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "server-business-frame": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "server-correlated-oast-callback": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "stable-dual-sort-fingerprint": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "user-controlled-sort-expression": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "whole-object-update-handler": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ]
+    },
+    "operation_type": {
+      "authenticate": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "callback": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "export": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "list": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "read": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001",
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001",
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001",
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "readback": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "sort": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "subscribe": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "update": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "upload": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ]
+    },
+    "required_material": {
+      "candidate-secret-fingerprint-in-restricted-evidence": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "confirmed-application-identity": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "controlled-account": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "controlled-account-a": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "controlled-account-b-or-authoritative-mapping": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "controlled-low-privilege-account": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "controlled-low-privilege-token": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "controlled-oast-endpoint": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "controlled-peer-identity": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "controlled-small-file": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "exact-delete-or-expiry-path": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "fixed-invalid-token": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "fixed-minimal-page": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "independent-readback-route": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "known-normal-ticket-request": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "known-protected-read-route": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "minimal-controlled-object-scope": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "nonempty-self-object": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "official-readonly-or-validate-only-endpoint": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "offline-handshake-and-frame-structure": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "one-unique-path-per-request": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "optional-controlled-admin-context": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "prefetch-observation-control": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "protected-field-denial-baseline": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "random-high-entropy-identity": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "real-ui-selector": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "reversible-test-field": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "stable-readonly-dataset": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "state-baseline": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "two-distinct-legal-sort-keys": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ]
+    },
+    "root_cause_family": {
+      "bola": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "cross_service_token_trust": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "field_level_authorization_bypass": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "guest_upload_ticket_fail_open": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "mass_assignment": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "order_by_expression_injection": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "server_side_remote_fetch_validation": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "third_party_server_secret_exposure": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "websocket_path_identity_trust": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ]
+    },
+    "scene": {
+      "customer-token-to-admin-route": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "guest-upload-ticket-fail-open-contract": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "media-processor-oast-attribution-contract": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "normal-view-to-export-log-field-boundary": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "order-by-expression-evaluation-contract": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "profile-field-write-boundary": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "third-party-server-secret-validation-contract": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "ui-selector-to-object-authorization": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "websocket-path-identity-routing-contract": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ]
+    },
+    "target_type": {
+      "admin-api": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "api-gateway": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "artifact": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "mobile-api": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001",
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001",
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "single-page-application": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001",
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "third-party-api": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "web-api": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001",
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001",
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "websocket": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ]
+    },
+    "technology": {
+      "bearer-token": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "csv": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "hmac": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "http": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "json": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "jwt": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "media-processor": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "multipart": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "oast": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "oauth": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "object-storage": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "provider-api": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "rest": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001",
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001",
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001",
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "sql": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "web-ui": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "websocket": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "xlsx": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ]
+    },
+    "trust_boundary": {
+      "account-to-business-object": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "anonymous-to-peer-identity": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "anonymous-to-storage": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "browser-to-server-fetch": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ],
+      "client-allowed-fields-to-server-domain-object": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "customer-identity-to-administration-service": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "normal-view-to-export-dto": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "path-identity-to-business-channel": [
+        "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+      ],
+      "public-artifact-to-provider-control-plane": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "role-to-sensitive-field": [
+        "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+      ],
+      "server-secret-to-application-identity": [
+        "CASE-INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001"
+      ],
+      "sort-parameter-to-query-expression": [
+        "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+      ],
+      "ticket-to-object-policy": [
+        "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+      ],
+      "token-validation-to-route-authorization": [
+        "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+      ],
+      "ui-selection-to-server-object-authorization": [
+        "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+      ],
+      "user-role-to-sensitive-profile-field": [
+        "CASE-AUTHZ-MASS-ASSIGNMENT-001"
+      ],
+      "user-url-to-media-processor": [
+        "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001"
+      ]
+    }
+  },
+  "schema_version": "1.0"
+}

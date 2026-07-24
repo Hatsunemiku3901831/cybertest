@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+  "title": "界面默认对象与真实授权边界的分离",
+  "summary": "使用账号健康、自有非空对象、真实选择器、权威归属映射和交叉对象请求矩阵，过滤默认选项、全局目录和空列表造成的 BOLA 误报。",
+  "scene": "ui-selector-to-object-authorization",
+  "target_type": [
+    "single-page-application",
+    "web-api"
+  ],
+  "technology": [
+    "json",
+    "rest",
+    "web-ui"
+  ],
+  "business_object": [
+    "project",
+    "tenant-resource"
+  ],
+  "operation_type": [
+    "list",
+    "read"
+  ],
+  "trust_boundary": [
+    "account-to-business-object",
+    "ui-selection-to-server-object-authorization"
+  ],
+  "observed_signal": [
+    "default-option-contains-object-identifier",
+    "global-selector-lists-unassigned-objects",
+    "object-parameter-can-be-replaced"
+  ],
+  "root_cause_family": "bola",
+  "evidence_mode": [
+    "account-object-mapping",
+    "browser-api-differential",
+    "negative-control"
+  ],
+  "required_material": [
+    "controlled-account-a",
+    "controlled-account-b-or-authoritative-mapping",
+    "nonempty-self-object",
+    "real-ui-selector"
+  ],
+  "matched_tactics": [
+    "AUTHZ-BOLA-UI-FALSE-POSITIVE-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "healthy-self-baseline",
+      "description": "先证明账号能通过正常界面读取一个非空自有对象，避免失效会话造成伪阴性。"
+    },
+    {
+      "id": "authoritative-membership-map",
+      "description": "把实际菜单或选择器与权威账号到对象归属映射对照，界定真正的外部对象。"
+    },
+    {
+      "id": "same-session-cross-object",
+      "description": "在同一健康会话中只替换对象标识，并与 self、缺失和不存在对象响应做差分。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "default-option-as-boundary",
+      "description": "路由默认值或默认选项不等于该对象属于当前账号。"
+    },
+    {
+      "id": "global-directory-as-ownership",
+      "description": "全局项目或商户目录可见不等于其中每个对象都授权给当前主体。"
+    },
+    {
+      "id": "empty-list-cross-check",
+      "description": "self 基线为空时，交叉对象的空响应无法证明授权正确或错误。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "服务端按当前主体与对象的权威关系执行对象级授权，不信任客户端选择器或对象标识。",
+    "suspected_missing_control": "服务端只验证登录态或对象存在性，没有验证对象是否属于当前主体可访问范围。",
+    "impact_boundary": "只有权威映射排除的对象在交叉请求中返回非空受限字段才确认；公开目录和公开资料字段必须剔除。"
+  },
+  "request_matrix": [
+    {
+      "id": "account-health",
+      "variant": "positive-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "normal-ui-navigation",
+      "expected_observation": "账号和会话有效，正常菜单可达。"
+    },
+    {
+      "id": "self-nonempty-object",
+      "variant": "positive-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "self-object-id",
+      "expected_observation": "得到可用于响应形状校准的非空自有对象。"
+    },
+    {
+      "id": "missing-object-id",
+      "variant": "negative-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "object-id-absent",
+      "expected_observation": "识别忽略参数、会话默认对象或全局列表行为。"
+    },
+    {
+      "id": "nonexistent-object-id",
+      "variant": "negative-control",
+      "auth_context": "controlled-user-a",
+      "mutation": "synthetic-nonexistent-id",
+      "expected_observation": "校准不存在对象、统一错误和 fallback 响应。"
+    },
+    {
+      "id": "foreign-controlled-object",
+      "variant": "candidate-probe",
+      "auth_context": "controlled-user-a",
+      "mutation": "controlled-user-b-object-id",
+      "expected_observation": "只有返回非空且超出公开预期的 B 对象字段才支持 BOLA。"
+    },
+    {
+      "id": "owner-read",
+      "variant": "positive-control",
+      "auth_context": "controlled-user-b",
+      "mutation": "same-controlled-user-b-object-id",
+      "expected_observation": "确认对象存在、归属和响应字段形状。"
+    }
+  ],
+  "false_positive_filters": [
+    "默认选项、首个项目和路由参数不能单独作为账号到对象的权威映射。",
+    "公开目录、公开档案或前台展示字段必须从受限字段差异中剔除。",
+    "self 基线为空或登录态失效时，cross 请求结果只能标记为未判定。",
+    "忽略对象参数并始终返回 requester self 不属于跨对象读取。"
+  ],
+  "evidence_invariants": [
+    "self 与 cross 请求除对象标识外保持方法、路径、查询、会话和请求头一致。",
+    "外部对象必须由第二受控账号或权威映射确认存在且不属于请求者。",
+    "结论依赖非空受限字段，不依赖状态码、默认选择器或总数占位值。",
+    "浏览器可见性、API 返回和权威归属分别记录，三者不得互相替代。"
+  ],
+  "stop_conditions": [
+    "首个受控外部对象的非空受限字段形成稳定差分后停止测试其它对象。",
+    "账号健康或 self 非空基线失败时停止交叉请求并转为材料阻塞。",
+    "发现对象属于公开目录或双方共享授权范围时停止并按误报归档。"
+  ],
+  "rollback": {
+    "required": false,
+    "method": "仅执行只读导航和最小对象读取，不创建、修改、导出或删除对象。",
+    "success_criteria": "两个受控账号和对象状态均未变化，未产生下载文件或异步任务。"
+  },
+  "sources": [
+    {
+      "source_alias": "anonymous-retrospective-index",
+      "relative_path": "agent/retrospectives/index.md",
+      "sha256": "18c94db6f732dd703c06d2f1fc442c20a40463cf36385e14b002a1e223bcd7ca",
+      "selection": "选择包含 A/B 健康门禁、self 非空基线、对象归属和参数忽略误报的匿名摘要。"
+    },
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 BOLA UI False Positive 家族规定的真实选择器、权威映射和非空 self 基线。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

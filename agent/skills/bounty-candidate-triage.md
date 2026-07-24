@@ -157,6 +157,9 @@ archived
 ```
 
 缺少测试账号、测试订单、测试运单、测试网点、测试 AppKey/Secret、可回滚文件或权限账号对时，不能直接归档为失败，应标记 `blocked_need_material`。
+该状态必须同时填写 `missing_materials`、`blocked_reason`、
+`recovery_first_action`、`resume_tactic_id` 和 `reopen_conditions`；材料恢复后从
+记录的 tactic 第一判别动作继续，不重新从泛化扫描开始。
 
 ## 材料需求
 

@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "id": "AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+  "version": 1,
+  "title": "导出与日志字段级权限边界",
+  "summary": "比较同一身份在正常 UI/API、导出 DTO 和操作日志中的字段可见性，识别字段级授权旁路。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["api", "admin", "spa"],
+    "technologies": ["rest", "xlsx", "csv"],
+    "endpoint_traits": ["export", "operation-log", "audit-log"],
+    "observed_signals": ["export_endpoint", "operation_log", "audit_log", "field_visibility_difference"],
+    "business_objects": ["member", "user", "contact", "operation-log"],
+    "operation_types": ["export", "read"],
+    "trust_boundaries": ["role_to_sensitive_field", "user_to_admin"],
+    "evidence_stages": ["signal", "route", "handler", "object_read", "impact"]
+  },
+  "control_gap": {
+    "category": "authorization",
+    "operation_type": "export",
+    "trust_boundary": "role_to_sensitive_field",
+    "expected_controls": ["field_level_authorization", "export_scope_filter", "log_redaction"],
+    "suspected_missing_controls": ["field_level_authorization", "export_scope_filter"]
+  },
+  "prerequisites": ["使用受控低权限账号。", "先建立同账号正常 UI/API 的字段可见基线。"],
+  "material_requirements": [
+    {"id": "controlled_low_privilege_account", "description": "受控低权限账号", "required": true}
+  ],
+  "request_matrix": [
+    {"id": "normal-view", "role": "baseline", "description": "记录同账号正常 UI/API 可见字段集合。"},
+    {"id": "denied-field", "role": "negative_control", "description": "确认同账号对受保护字段或读取面被拒绝。"},
+    {"id": "minimal-export", "role": "candidate_probe", "description": "用最小页和最小对象范围执行只读导出或日志读取。"},
+    {"id": "field-set-diff", "role": "readback", "description": "仅比较字段名、类型、非空和长度桶。"}
+  ],
+  "expected_observations": ["导出或日志字段必须超出同账号正常读取边界。", "数据行和服务端声明总量分别记录。"],
+  "evidence_invariants": ["同一账号和同一对象范围。", "只处理一行或最小页。", "不落盘真实业务原值。"],
+  "false_positive_filters": ["公开目录字段或同账号正常页面已可见字段。", "只有导出文件头、无数据行。", "显式日志权限与业务读取权限相同。"],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "zero_raw_value",
+  "readonly_fallback": false,
+  "stop_conditions": ["首次确认一个受保护字段旁路后停止扩大。", "遇到真实敏感原值前停止并改为结构统计。"],
+  "rollback": {"required": false, "steps": []},
+  "root_cause_family": "field_level_authorization_bypass",
+  "affected_instance_key_fields": ["service", "route_template", "dto_or_log_source", "role", "field_family"],
+  "rating_boundary": "只对超出同账号正常边界且具有实际敏感性的字段评级。",
+  "do_not_overclaim": "不得把显式获权日志、空导出、公共字段或服务端总量写成敏感数据批量泄露。",
+  "reopen_conditions": ["取得受控低权限账号。", "发现新的导出 DTO、日志消费者或字段权限差异。"],
+  "required_capabilities": [
+    {"id": "http.replay", "required": true, "fallbacks": ["cli.http"]}
+  ],
+  "source_cases": [
+    "CASE-AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": ["fields_visible_in_normal_ui", "empty_export", "explicit_same_scope_permission"],
+  "next_discriminating_action": "先构造同账号正常读取字段集，再用最小导出或日志样本做字段集合差分。",
+  "reroute_triggers": ["字段在正常 UI 已可见。", "导出为空。", "发现独立对象级越权或认证缺口。"],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

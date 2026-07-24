@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "url": "https://api.example.invalid/v1/member/123456?userId=111&token=synthetic-token-alpha",
+      "method": "GET",
+      "status_code": 200
+    },
+    {
+      "url": "https://api.example.invalid/v1/member/654321?token=synthetic-token-beta&userId=222",
+      "method": "GET",
+      "status_code": 200
+    }
+  ]
+}

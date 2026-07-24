@@ -372,25 +372,12 @@ rax2 -s hello
 
 ## 按需自举（On-Demand Bootstrap）
 
-本 skill 的入口脚本已接入统一自举系统。缺少 radare2 时不会直接报错，而是自动尝试安装。
+入口脚本默认只检查 `r2`/`rabin2` 是否可用，子脚本不会在缺失时自动联网安装：
 
-### 自动化能力边界
+```bash
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect r2 rabin2
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run r2 rabin2
+```
 
-| 工具 | 可自动安装 | 安装方式 | 说明 |
-|------|-----------|---------|------|
-| r2 | ✓ | GitHub Release ZIP (w64) | 自动下载解压到 `%USERPROFILE%\Tools\radare2\` |
-| rabin2 | ✓ | 同上（包含在 radare2 发行包中） | — |
-| rasm2 | ✓ | 同上 | — |
-| radiff2 | ✓ | 同上 | — |
-| rahash2 | ✓ | 同上 | — |
-| rax2 | ✓ | 同上 | — |
-
-### 自举触发点
-
-- `scripts/recon.ps1`：缺 `rabin2` 或 `r2` 时自动调用 `bootstrap-reverse.ps1`
-
-### 自举失败时
-
-如果自动安装失败（网络不通、GitHub API 限流等），脚本会抛出明确错误并附带手动安装链接。
-
-手动安装：从 https://github.com/radareorg/radare2/releases 下载 `radare2-*-w64.zip`，解压到 `%USERPROFILE%\Tools\radare2\` 并确保 `bin\` 目录在 PATH 中。
+只有显式 `--install r2` 才会委托给平台注册的 `reverse` profile 安装器。
+其它 radare2 工具以实际发行包和 `PATH` 探测结果为准，不假设个人工具目录。

@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001",
+  "title": "ORDER BY 表达式的稳定布尔 Oracle",
+  "summary": "匿名迁移案例契约：先建立两个合法排序的稳定指纹，再以 true、false、null 三态判断排序参数是否进入表达式求值；它不代表真实目标、数据提取或已确认注入。",
+  "scene": "order-by-expression-evaluation-contract",
+  "target_type": [
+    "web-api"
+  ],
+  "technology": [
+    "rest",
+    "sql"
+  ],
+  "business_object": [
+    "paginated-list",
+    "search-result"
+  ],
+  "operation_type": [
+    "read",
+    "sort"
+  ],
+  "trust_boundary": [
+    "sort-parameter-to-query-expression"
+  ],
+  "observed_signal": [
+    "boolean-condition-changes-order",
+    "stable-dual-sort-fingerprint",
+    "user-controlled-sort-expression"
+  ],
+  "root_cause_family": "order_by_expression_injection",
+  "evidence_mode": [
+    "boolean-oracle",
+    "order-fingerprint",
+    "zero-raw-value"
+  ],
+  "required_material": [
+    "fixed-minimal-page",
+    "stable-readonly-dataset",
+    "two-distinct-legal-sort-keys"
+  ],
+  "matched_tactics": [
+    "INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "stable-dual-sort-baseline",
+      "description": "用两个合法排序键建立多轮稳定且彼此不同的对象顺序指纹。"
+    },
+    {
+      "id": "true-false-null-triad",
+      "description": "固定数据窗口，只改变条件为 true、false 和 null/无效表达式。"
+    },
+    {
+      "id": "fingerprint-only-evidence",
+      "description": "只保存对象顺序或类型指纹与重复一致性，不保存列表字段原值。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "single-length-difference",
+      "description": "单次响应长度差异不能排除数据漂移、缓存和随机排序。"
+    },
+    {
+      "id": "unstable-legal-sorts",
+      "description": "两个合法排序本身不稳定时，true/false 的映射没有可解释基线。"
+    },
+    {
+      "id": "keyword-reflection",
+      "description": "SQL 关键字回显、普通错误或参数存在不证明表达式被数据库求值。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "服务端将排序字段限制在显式 allowlist，并拒绝表达式、函数和条件语句进入查询结构。",
+    "suspected_missing_control": "用户可控排序参数被拼入 ORDER BY 表达式，导致条件结果可选择不同排序分支。",
+    "impact_boundary": "这是迁移验证契约；稳定三态最多支持表达式求值候选，不证明数据库信息提取、敏感数据泄露、认证绕过或完整 SQL 注入能力。"
+  },
+  "request_matrix": [
+    {
+      "id": "legal-sort-a",
+      "variant": "positive-control",
+      "auth_context": "same-readonly-context",
+      "mutation": "allowlisted-sort-key-a",
+      "expected_observation": "多轮产生稳定的排序指纹 A。"
+    },
+    {
+      "id": "legal-sort-b",
+      "variant": "positive-control",
+      "auth_context": "same-readonly-context",
+      "mutation": "allowlisted-sort-key-b",
+      "expected_observation": "多轮产生稳定且不同于 A 的排序指纹 B。"
+    },
+    {
+      "id": "boolean-true",
+      "variant": "candidate-probe",
+      "auth_context": "same-readonly-context",
+      "mutation": "readonly-condition-selects-sort-a",
+      "expected_observation": "结果稳定映射到合法排序指纹 A。"
+    },
+    {
+      "id": "boolean-false",
+      "variant": "candidate-probe",
+      "auth_context": "same-readonly-context",
+      "mutation": "same-expression-with-false-condition",
+      "expected_observation": "结果稳定映射到合法排序指纹 B。"
+    },
+    {
+      "id": "null-or-invalid",
+      "variant": "negative-control",
+      "auth_context": "same-readonly-context",
+      "mutation": "null-or-invalid-expression",
+      "expected_observation": "响应与 true/false 至少一种可区分，并揭示拒绝、默认排序或空值分支。"
+    }
+  ],
+  "false_positive_filters": [
+    "数据集在请求间发生变化时，顺序差异不能归因于条件表达式。",
+    "随机排序、缓存分桶或默认排序覆盖参数时不得形成 Oracle 结论。",
+    "只有一次长度、状态码或耗时差异时不得确认表达式求值。",
+    "true、false 和 null 都映射到同一默认排序时应否定候选。"
+  ],
+  "evidence_invariants": [
+    "所有变体使用同一数据窗口、页大小、过滤条件、认证上下文和请求时序。",
+    "合法排序 A 与 B 必须先经多轮验证为稳定且不同的指纹。",
+    "只保存对象顺序或类型指纹，不保存真实记录字段原值。",
+    "true、false 和 null/无效三态必须在同一最小只读列表上重复。"
+  ],
+  "stop_conditions": [
+    "三态与合法双排序形成稳定映射后停止，不继续枚举数据库内容。",
+    "数据窗口不稳定、参数被忽略或出现任何副作用时立即停止。",
+    "无法区分缓存、随机排序或默认排序时停止并降级为未判定。"
+  ],
+  "rollback": {
+    "required": false,
+    "method": "只执行固定最小页的只读排序请求，不创建、更新或导出对象。",
+    "success_criteria": "没有服务端状态变化，且证据只包含顺序指纹和三态观察。"
+  },
+  "sources": [
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 ORDER BY Boolean Oracle 家族规定的稳定双排序、true/false/null 三态、证据不变量和零原值验证。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

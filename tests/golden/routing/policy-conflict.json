@@ -1,0 +1,36 @@
+{
+  "name": "policy-conflict",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "authorization",
+    "target_types": ["api"],
+    "technologies": ["json", "rest"],
+    "endpoint_traits": ["profile-update"],
+    "business_objects": ["profile"],
+    "operation_types": ["write"],
+    "trust_boundaries": ["user_to_privileged_object"],
+    "observed_signals": ["ui_field_set", "server_object_fields", "extra_fields"],
+    "suspected_control_gaps": ["field_allowlist"],
+    "auth_contexts": ["controlled-test-user"],
+    "evidence_stage": "signal",
+    "available_materials": ["controlled_test_account", "reversible_test_object"],
+    "available_capabilities": ["http.replay", "browser.interactive"],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {
+    "max_safe_validation_level": "readonly",
+    "denied_tactics": [
+      "AUTH-JWT-ACCEPTANCE-MATRIX-001",
+      "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "AUTHZ-MASS-ASSIGNMENT-001"
+    ]
+  },
+  "expected": {
+    "route_status": "policy_conflict",
+    "top1": null
+  }
+}

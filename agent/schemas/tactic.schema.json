@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybertest.invalid/schemas/tactic.schema.json",
+  "title": "Cybertest Tactic",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "title",
+    "status",
+    "triggers",
+    "control_gap",
+    "request_matrix",
+    "evidence_invariants",
+    "false_positive_filters",
+    "safe_validation_level",
+    "stop_conditions",
+    "rollback",
+    "root_cause_family",
+    "rating_boundary",
+    "do_not_overclaim",
+    "required_capabilities",
+    "next_discriminating_action"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]+-[0-9]{3}$"},
+    "version": {"type": "integer", "minimum": 1},
+    "title": {"type": "string", "minLength": 1},
+    "summary": {"type": "string"},
+    "status": {"enum": ["draft", "active", "deprecated"]},
+    "triggers": {
+      "type": "object",
+      "required": [
+        "target_types",
+        "technologies",
+        "observed_signals",
+        "business_objects",
+        "operation_types",
+        "trust_boundaries",
+        "evidence_stages"
+      ],
+      "properties": {
+        "target_types": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "technologies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "endpoint_traits": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "observed_signals": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "business_objects": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "operation_types": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "trust_boundaries": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "evidence_stages": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "control_gap": {
+      "type": "object",
+      "required": ["category", "operation_type", "trust_boundary", "expected_controls", "suspected_missing_controls"],
+      "properties": {
+        "category": {"type": "string"},
+        "operation_type": {"type": "string"},
+        "trust_boundary": {"type": "string"},
+        "expected_controls": {"type": "array", "items": {"type": "string"}},
+        "suspected_missing_controls": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      },
+      "additionalProperties": false
+    },
+    "prerequisites": {"type": "array", "items": {"type": "string"}},
+    "material_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "required"],
+        "properties": {
+          "id": {"type": "string"},
+          "description": {"type": "string"},
+          "required": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "request_matrix": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "role", "description"],
+        "properties": {
+          "id": {"type": "string"},
+          "role": {"enum": ["baseline", "positive_control", "negative_control", "candidate_probe", "readback", "rollback"]},
+          "description": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "expected_observations": {"type": "array", "items": {"type": "string"}},
+    "evidence_invariants": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "false_positive_filters": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "safe_validation_level": {
+      "enum": ["readonly", "log_confirmation", "empty_body", "fake_object", "test_object", "authorized_side_effect"]
+    },
+    "sensitivity_policy": {"enum": ["zero_raw_value", "task", "restricted"]},
+    "readonly_fallback": {"type": "boolean"},
+    "stop_conditions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "rollback": {
+      "type": "object",
+      "required": ["required", "steps"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "steps": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "root_cause_family": {"type": "string", "minLength": 1},
+    "affected_instance_key_fields": {"type": "array", "items": {"type": "string"}},
+    "rating_boundary": {"type": "string", "minLength": 1},
+    "do_not_overclaim": {"type": "string", "minLength": 1},
+    "reopen_conditions": {"type": "array", "items": {"type": "string"}},
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "required", "fallbacks"],
+        "properties": {
+          "id": {"type": "string"},
+          "required": {"type": "boolean"},
+          "fallbacks": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "source_cases": {"type": "array", "items": {"type": "string"}},
+    "historical_validation_count": {"type": "integer", "minimum": 0},
+    "exclusion_signals": {"type": "array", "items": {"type": "string"}},
+    "next_discriminating_action": {"type": "string", "minLength": 1},
+    "reroute_triggers": {"type": "array", "items": {"type": "string"}},
+    "supporting_skills": {"type": "array", "items": {"type": "string"}, "maxItems": 2}
+  },
+  "additionalProperties": false
+}

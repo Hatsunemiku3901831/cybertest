@@ -1,0 +1,1055 @@
+{
+  "schema_version": "1.0",
+  "entries": [
+    {
+      "id": "ALLOW-PUBLIC-REF-001",
+      "match_type": "exact_domain",
+      "value": "0xax.gitbooks.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public reverse-engineering reference retained for attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-002",
+      "match_type": "exact_domain",
+      "value": "access.redhat.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official vendor documentation referenced by the patch workflow.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-001",
+      "match_type": "exact_domain",
+      "value": "aligfwaf.com",
+      "scope": ["agent/skills/basicsearch.md"],
+      "reason": "Public vendor hostname used only as a fingerprinting reference.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-003",
+      "match_type": "exact_domain",
+      "value": "angr.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official project documentation retained for technical reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-004",
+      "match_type": "exact_domain",
+      "value": "api.anthropic.com",
+      "scope": ["agent/skills/reverse/binary-diff/"],
+      "reason": "Public provider endpoint shown as a configurable API example.",
+      "source": "reviewed provider documentation example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-005",
+      "match_type": "exact_domain",
+      "value": "api.deepseek.com",
+      "scope": ["agent/skills/reverse/binary-diff/"],
+      "reason": "Public provider endpoint shown as a configurable API example.",
+      "source": "reviewed provider documentation example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-006",
+      "match_type": "exact_domain",
+      "value": "api.msrc.microsoft.com",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official Microsoft security API retained for patch research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-007",
+      "match_type": "exact_domain",
+      "value": "api.openai.com",
+      "scope": ["agent/skills/reverse/binary-diff/"],
+      "reason": "Public provider endpoint shown as a configurable API example.",
+      "source": "reviewed provider documentation example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-001",
+      "match_type": "exact_domain",
+      "value": "app.app",
+      "scope": ["agent/skills/reverse/mobile-reverse/"],
+      "reason": "Objective-C application syntax falsely resembles a domain name.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-TECHNOLOGY-001",
+      "match_type": "exact_domain",
+      "value": "asp.net",
+      "scope": ["agent/memory/pattern/", "agent/skills/aggressive-high-impact.md", "agent/skills/nonprod-intensive-pentest.md"],
+      "reason": "Public framework name used as technology metadata, not a target.",
+      "source": "reviewed technology identifier",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-008",
+      "match_type": "exact_domain",
+      "value": "attack.mitre.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official MITRE ATT&CK reference retained for defensive mapping.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-009",
+      "match_type": "exact_domain",
+      "value": "azeria-labs.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public educational reverse-engineering reference retained for attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-010",
+      "match_type": "exact_domain",
+      "value": "blog.rchapman.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public technical article retained as a reverse-engineering reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-011",
+      "match_type": "exact_domain",
+      "value": "blog.trailofbits.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public security research article retained for technical attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-002",
+      "match_type": "exact_domain",
+      "value": "cdn.jsdelivr.net",
+      "scope": ["agent/skills/basicsearch.md"],
+      "reason": "Public CDN hostname used only in reconnaissance methodology.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-002",
+      "match_type": "exact_domain",
+      "value": "com.app",
+      "scope": ["agent/skills/reverse/mobile-reverse/"],
+      "reason": "Mobile package identifier falsely resembles a public domain.",
+      "source": "reviewed synthetic package identifier",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-003",
+      "match_type": "exact_domain",
+      "value": "com.example.app",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Reserved synthetic mobile package identifier used in examples.",
+      "source": "project documentation convention",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-012",
+      "match_type": "exact_domain",
+      "value": "crackstation.net",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public cryptography reference retained for tool documentation.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-013",
+      "match_type": "exact_domain",
+      "value": "cve.kernel.org",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official kernel CVE reference retained for patch research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-014",
+      "match_type": "exact_domain",
+      "value": "cydia.app",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public mobile tooling identifier used in platform examples.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-015",
+      "match_type": "exact_domain",
+      "value": "darkdust.net",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public technical reference retained for reverse-engineering attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-003",
+      "match_type": "exact_domain",
+      "value": "data.commoncrawl.org",
+      "scope": ["agent/skills/search.md"],
+      "reason": "Public Common Crawl endpoint required by passive discovery guidance.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-016",
+      "match_type": "exact_domain",
+      "value": "developer.arm.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official ARM developer documentation retained for reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-017",
+      "match_type": "exact_domain",
+      "value": "dlang.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official language documentation retained for compiled-code analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-018",
+      "match_type": "exact_domain",
+      "value": "docs.microsoft.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official Microsoft documentation retained for platform reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-019",
+      "match_type": "exact_domain",
+      "value": "dogbolt.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public decompiler comparison service retained as a tool reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-020",
+      "match_type": "exact_domain",
+      "value": "e-m-b-a.github.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official public project documentation retained for firmware analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-004",
+      "match_type": "exact_domain",
+      "value": "edition.app",
+      "scope": ["agent/skills/reverse/scripts/refresh-tool-index.sh"],
+      "reason": "macOS application bundle name falsely resembles a domain.",
+      "source": "reviewed filesystem application name",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-021",
+      "match_type": "exact_domain",
+      "value": "eversinc33.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public technical article retained for reverse-engineering attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-022",
+      "match_type": "exact_domain",
+      "value": "factordb.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public cryptography reference retained for tool documentation.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-023",
+      "match_type": "exact_domain",
+      "value": "fccid.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public regulatory lookup service retained for firmware research.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-005",
+      "match_type": "exact_domain",
+      "value": "free.app",
+      "scope": ["agent/skills/reverse/scripts/refresh-tool-index.sh"],
+      "reason": "macOS application bundle name falsely resembles a domain.",
+      "source": "reviewed filesystem application name",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-024",
+      "match_type": "exact_domain",
+      "value": "gchq.github.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official public project documentation retained for cryptography tools.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-025",
+      "match_type": "exact_domain",
+      "value": "ghidra-sre.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official Ghidra project domain retained for malware analysis guidance.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-006",
+      "match_type": "exact_domain",
+      "value": "ghidra.app",
+      "scope": ["agent/skills/reverse/scripts/refresh-tool-index.sh"],
+      "reason": "macOS application bundle name falsely resembles a domain.",
+      "source": "reviewed filesystem application name",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-026",
+      "match_type": "exact_domain",
+      "value": "gist.github.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public source-code reference retained for technical attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-027",
+      "match_type": "exact_domain",
+      "value": "github.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public upstream source references retained for tools and research.",
+      "source": "reviewed public source repository references",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-028",
+      "match_type": "exact_domain",
+      "value": "godbolt.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public compiler explorer retained as a reverse-engineering reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-029",
+      "match_type": "exact_domain",
+      "value": "guyinatuxedo.github.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public educational material retained for reverse-engineering attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-030",
+      "match_type": "exact_domain",
+      "value": "hashcat.net",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official public tool domain retained for cryptography guidance.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-031",
+      "match_type": "exact_domain",
+      "value": "hashes.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public hash reference retained for cryptography documentation.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-032",
+      "match_type": "exact_domain",
+      "value": "hex-rays.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official reverse-engineering vendor documentation retained for reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-033",
+      "match_type": "exact_domain",
+      "value": "jwt.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public JWT documentation service retained for format reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-034",
+      "match_type": "exact_domain",
+      "value": "karambit.ai",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public binary-diff tool reference retained for comparison guidance.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-007",
+      "match_type": "exact_domain",
+      "value": "log.info",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Logging API expression falsely resembles a public domain.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-035",
+      "match_type": "exact_domain",
+      "value": "malwareunicorn.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public malware-analysis training material retained for attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-036",
+      "match_type": "exact_domain",
+      "value": "mas.owasp.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official OWASP mobile security documentation retained for reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-037",
+      "match_type": "exact_domain",
+      "value": "msdl.microsoft.com",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official Microsoft download service retained for patch research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-038",
+      "match_type": "exact_domain",
+      "value": "msrc.microsoft.com",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official Microsoft security response reference retained for research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-039",
+      "match_type": "exact_domain",
+      "value": "nostarch.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public publisher reference retained for bibliographic attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-040",
+      "match_type": "exact_domain",
+      "value": "owasp.org",
+      "scope": ["agent/skills/OWASPtop10.md"],
+      "reason": "Official OWASP documentation retained for security methodology.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-041",
+      "match_type": "exact_domain",
+      "value": "pool.ntp.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public NTP service used as a protocol example, not a target.",
+      "source": "reviewed protocol documentation example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-042",
+      "match_type": "exact_domain",
+      "value": "practicalbinaryanalysis.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public book reference retained for bibliographic attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-008",
+      "match_type": "exact_domain",
+      "value": "professional.app",
+      "scope": ["agent/skills/reverse/scripts/refresh-tool-index.sh"],
+      "reason": "macOS application bundle name falsely resembles a domain.",
+      "source": "reviewed filesystem application name",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-043",
+      "match_type": "exact_domain",
+      "value": "qiling.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official emulation project reference retained for reverse engineering.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-004",
+      "match_type": "exact_domain",
+      "value": "qiye.163.com",
+      "scope": ["agent/skills/basicsearch.md"],
+      "reason": "Public mail-service hostname used only for provider fingerprinting.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-009",
+      "match_type": "exact_domain",
+      "value": "ql.log.info",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Logging API expression falsely resembles a public domain.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-044",
+      "match_type": "exact_domain",
+      "value": "quipqiup.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public cryptography service retained as a tool reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-005",
+      "match_type": "exact_domain",
+      "value": "rapiddns.io",
+      "scope": ["agent/skills/search.md"],
+      "reason": "Public passive-DNS service required by discovery methodology.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-045",
+      "match_type": "exact_domain",
+      "value": "raw.githubusercontent.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public upstream source reference retained for patch tooling.",
+      "source": "reviewed public source repository reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-046",
+      "match_type": "exact_domain",
+      "value": "refspecs.linuxfoundation.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official public ABI specifications retained for binary analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-047",
+      "match_type": "exact_domain",
+      "value": "retdec.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public decompiler project reference retained for tool comparison.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-006",
+      "match_type": "exact_domain",
+      "value": "sangfordns.com",
+      "scope": ["agent/skills/basicsearch.md"],
+      "reason": "Public vendor hostname used only as a fingerprinting reference.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-048",
+      "match_type": "exact_domain",
+      "value": "scriptingxss.gitbook.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public technical documentation retained for firmware research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-049",
+      "match_type": "exact_domain",
+      "value": "security-labs.elastic.co",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public security research retained for technical attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-TECHNOLOGY-002",
+      "match_type": "exact_domain",
+      "value": "socket.io",
+      "scope": ["agent/memory/pattern/"],
+      "reason": "Public framework name used as technology metadata, not a target.",
+      "source": "reviewed technology identifier",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-050",
+      "match_type": "exact_domain",
+      "value": "sysprog21.github.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public technical documentation retained for kernel research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-DOMAIN-010",
+      "match_type": "exact_domain",
+      "value": "target.app",
+      "scope": ["agent/skills/reverse/mobile-reverse/"],
+      "reason": "Synthetic application identifier used only in command examples.",
+      "source": "reviewed synthetic package identifier",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-051",
+      "match_type": "exact_domain",
+      "value": "triton-library.github.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official project documentation retained for binary analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-052",
+      "match_type": "exact_domain",
+      "value": "ubuntu.com",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official distribution documentation retained for patch research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-007",
+      "match_type": "exact_domain",
+      "value": "unpkg.com",
+      "scope": ["agent/skills/basicsearch.md"],
+      "reason": "Public CDN hostname used only in reconnaissance methodology.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-053",
+      "match_type": "exact_domain",
+      "value": "upx.github.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official public tool documentation retained for packer analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-008",
+      "match_type": "exact_domain",
+      "value": "urlscan.io",
+      "scope": ["agent/skills/search.md"],
+      "reason": "Public discovery service required by passive reconnaissance guidance.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-054",
+      "match_type": "exact_domain",
+      "value": "virustotal.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public malware-analysis service retained as a tool reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-055",
+      "match_type": "exact_domain",
+      "value": "voidsec.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public security research retained for technical attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-METHOD-009",
+      "match_type": "exact_domain",
+      "value": "web.archive.org",
+      "scope": ["agent/skills/search.md"],
+      "reason": "Public web archive endpoint required by passive discovery guidance.",
+      "source": "reviewed reconnaissance methodology",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-056",
+      "match_type": "exact_domain",
+      "value": "whiteknightlabs.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public security research retained for technical attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-057",
+      "match_type": "exact_domain",
+      "value": "willsroot.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public kernel research retained for technical attribution.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-058",
+      "match_type": "exact_domain",
+      "value": "www.catalog.update.microsoft.com",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official Microsoft update catalog retained for patch research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-059",
+      "match_type": "exact_domain",
+      "value": "www.debian.org",
+      "scope": ["agent/skills/reverse/patch-diff-exploit/"],
+      "reason": "Official distribution documentation retained for patch research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-060",
+      "match_type": "exact_domain",
+      "value": "www.felixcloutier.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public instruction-set reference retained for binary analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-061",
+      "match_type": "exact_domain",
+      "value": "www.hybrid-analysis.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public malware-analysis service retained as a tool reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-062",
+      "match_type": "exact_domain",
+      "value": "www.joesandbox.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public malware-analysis service retained as a tool reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-063",
+      "match_type": "exact_domain",
+      "value": "www.loldrivers.io",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public driver reference retained for defensive kernel research.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-064",
+      "match_type": "exact_domain",
+      "value": "www.openwall.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public security reference retained for pwn and cryptography guidance.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-065",
+      "match_type": "exact_domain",
+      "value": "www.pnfsoftware.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official reverse-engineering vendor reference retained for tooling.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-066",
+      "match_type": "exact_domain",
+      "value": "www.python.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official language documentation retained for bytecode analysis.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-067",
+      "match_type": "exact_domain",
+      "value": "www.qemu.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official emulator documentation retained for reverse engineering.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-068",
+      "match_type": "exact_domain",
+      "value": "www.sagemath.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official mathematics tooling reference retained for cryptography.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-069",
+      "match_type": "exact_domain",
+      "value": "www.unicorn-engine.org",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Official emulation project documentation retained for reference.",
+      "source": "reviewed public documentation reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-REF-070",
+      "match_type": "exact_domain",
+      "value": "www.virustotal.com",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Public malware-analysis service retained as a tool reference.",
+      "source": "reviewed public tool reference",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-IP-001",
+      "match_type": "exact_ip",
+      "value": "1.1.1.1",
+      "scope": ["agent/memory/pattern/", "agent/skills/basicsearch.md", "agent/skills/security-testing.md", "agent/skills/webskill.md"],
+      "reason": "Well-known public resolver used only as a DNS control example.",
+      "source": "reviewed methodology example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTHETIC-IP-001",
+      "match_type": "exact_ip",
+      "value": "1.2.3.4",
+      "scope": ["agent/skills/basicsearch.md", "agent/skills/search.md"],
+      "reason": "Legacy generic placeholder retained only in command examples.",
+      "source": "reviewed methodology example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-RFC1918-IP-001",
+      "match_type": "exact_ip",
+      "value": "10.0.0.0",
+      "scope": ["agent/skills/nonprod-intensive-pentest.md"],
+      "reason": "RFC 1918 network base used as a non-production scope example.",
+      "source": "reviewed methodology example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-RFC1918-IP-002",
+      "match_type": "exact_ip",
+      "value": "172.16.0.0",
+      "scope": ["agent/skills/nonprod-intensive-pentest.md"],
+      "reason": "RFC 1918 network base used as a non-production scope example.",
+      "source": "reviewed methodology example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-RFC1918-IP-003",
+      "match_type": "exact_ip",
+      "value": "192.168.0.0",
+      "scope": ["agent/skills/nonprod-intensive-pentest.md"],
+      "reason": "RFC 1918 network base used as a non-production scope example.",
+      "source": "reviewed methodology example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-RFC1918-IP-004",
+      "match_type": "exact_ip",
+      "value": "192.168.0.1",
+      "scope": ["agent/skills/reverse/firmware-pentest/"],
+      "reason": "Generic RFC 1918 gateway used only in firmware lab examples.",
+      "source": "reviewed synthetic lab example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-RFC1918-IP-005",
+      "match_type": "exact_ip",
+      "value": "192.168.0.100",
+      "scope": ["agent/skills/reverse/firmware-pentest/"],
+      "reason": "Generic RFC 1918 host used only in firmware lab examples.",
+      "source": "reviewed synthetic lab example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-RFC1918-IP-006",
+      "match_type": "exact_ip",
+      "value": "192.168.1.100",
+      "scope": ["agent/skills/reverse/firmware-pentest/"],
+      "reason": "Generic RFC 1918 host used only in firmware lab examples.",
+      "source": "reviewed synthetic lab example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-PUBLIC-IP-002",
+      "match_type": "exact_ip",
+      "value": "8.8.8.8",
+      "scope": ["agent/skills/basicsearch.md", "agent/skills/security-testing.md", "agent/skills/webskill.md"],
+      "reason": "Well-known public resolver used only as a DNS control example.",
+      "source": "reviewed methodology example",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-IP-001",
+      "match_type": "exact_ip",
+      "value": "::ada",
+      "scope": ["agent/skills/reverse/reverse-engineering/languages-compiled.md"],
+      "reason": "Compiled-language syntax falsely resembles a valid IPv6 literal.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-IP-002",
+      "match_type": "exact_ip",
+      "value": "::f",
+      "scope": ["agent/skills/reverse/reverse-engineering/languages-compiled.md"],
+      "reason": "Compiled-language syntax falsely resembles a valid IPv6 literal.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-IP-003",
+      "match_type": "exact_ip",
+      "value": "c::",
+      "scope": ["agent/skills/reverse/reverse-engineering/languages-compiled.md"],
+      "reason": "Compiled-language syntax falsely resembles a valid IPv6 literal.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-IP-004",
+      "match_type": "exact_ip",
+      "value": "d::",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Source-code syntax falsely resembles a valid IPv6 literal.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    },
+    {
+      "id": "ALLOW-SYNTAX-IP-005",
+      "match_type": "exact_ip",
+      "value": "e::",
+      "scope": ["agent/skills/reverse/"],
+      "reason": "Source-code syntax falsely resembles a valid IPv6 literal.",
+      "source": "reviewed source-code literal",
+      "reviewed_at": "2026-07-24",
+      "expires_at": null
+    }
+  ]
+}

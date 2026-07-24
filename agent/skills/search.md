@@ -47,7 +47,7 @@ agent 在收集每条资产时，必须同时完成三层记录，不得分阶�
 
 | 层次 | 动作 | 示例 |
 |------|------|------|
-| 资产层 | 记录资产属性（域名/IP/端口/标题/指纹） | `gygg.gztv.com` → nginx, Vue SPA |
+| 资产层 | 记录资产属性（域名/IP/端口/标题/指纹） | `api.example.invalid` → nginx, Vue SPA |
 | 信任边界层 | 观察认证方式、网络隔离、证书复用、部署差异 | 独立 wildcard 证书 ≠ 主站证书 → 可能不同团队/外包 |
 | 攻击面标记 | 标注"这里可能有什么攻击面" | API 需签名 → 签名密钥可能在 JS 中 → 记录为 `sig_key_candidate` |
 
@@ -136,14 +136,14 @@ json {   "asset_id": "唯一 ID",   "asset_type": "domain | subdomain | url | ip
 
 | 关系 | 含义 | 示例 |
 |------|------|------|
-| `resolves_to` | 域名解析到 IP | `gztv.com` → `119.32.4.92` |
-| `shares_cert` | 共享 TLS 证书 | `www`, `mail`, `dev` 共享 `*.gztv.com` 证书 |
-| `loads_js_from` | 页面加载 JS 资源 | `www.gztv.com` → `app.ecf2d1c9.js` |
+| `resolves_to` | 域名解析到 IP | `example.invalid` → `192.0.2.10` |
+| `shares_cert` | 共享 TLS 证书 | `www`, `mail`, `dev` 共享 `*.example.invalid` 证书 |
+| `loads_js_from` | 页面加载 JS 资源 | `www.example.invalid` → `app.synthetic.js` |
 | `calls_api` | JS 调用后端 API | `app.js` → `/plus-cloud-manage-app/liveChannel/...` |
-| `redirects_to` | HTTP 重定向 | `oa.gztv.com` → `oa.gztv.com:7443` |
-| `cname_to` | DNS CNAME 指向 | `www.gztv.com` → `bdsa.cdnbuild.net` (百度 CDN) |
-| `contains_key` | JS/配置包含密钥 | `index-CpJWTnZ5.js` → `GZTVGYGGUCBYUN` |
-| `is_third_party` | 属于第三方 | `upload.gztv.com` CNAME → 深信服 CDN |
+| `redirects_to` | HTTP 重定向 | `oa.example.invalid` → `oa.example.invalid:7443` |
+| `cname_to` | DNS CNAME 指向 | `www.example.invalid` → `cdn.example.net` |
+| `contains_key` | JS/配置包含密钥 | `index.synthetic.js` → `{redacted-key-fingerprint}` |
+| `is_third_party` | 属于第三方 | `upload.example.invalid` CNAME → `cdn.example.net` |
 
 JSON 格式：
 
@@ -151,12 +151,12 @@ JSON 格式：
 {
   "relationships": {
     "nodes": [
-      {"id": "sub:gygg.gztv.com", "type": "subdomain", "label": "gygg.gztv.com", "attack_surface_tags": ["api_signature_required", "separate_cert"]},
-      {"id": "js:gygg-index", "type": "js_file", "label": "index-CpJWTnZ5.js"}
+      {"id": "sub:api.example.invalid", "type": "subdomain", "label": "api.example.invalid", "attack_surface_tags": ["api_signature_required", "separate_cert"]},
+      {"id": "js:api-index", "type": "js_file", "label": "index.synthetic.js"}
     ],
     "edges": [
-      {"from": "sub:gygg.gztv.com", "to": "js:gygg-index", "relation": "loads_js_from"},
-      {"from": "js:gygg-index", "to": "secret:GZTVGYGGUCBYUN", "relation": "contains_key"}
+      {"from": "sub:api.example.invalid", "to": "js:api-index", "relation": "loads_js_from"},
+      {"from": "js:api-index", "to": "secret:redacted-key-fingerprint", "relation": "contains_key"}
     ]
   }
 }
@@ -306,6 +306,40 @@ json {   "subdomain": "api.example.com",   "root_domain": "example.com",   "sour
 - 是否使用独立证书（→ 可能独立部署/不同团队）
 - 是否与已知 IP 重叠（→ 同一系统）或独立 IP（→ 新攻击面）
 - 命名是否暗示环境类型（dev/test/staging/uat/admin/internal）
+
+---
+### 6.3.1 被动源穷举命令
+
+以下命令应在每轮被动枚举中逐条执行。每条产出写入 `evidence/` 并解析出范围内域名。
+
+| 来源 | 命令模板 | 输出 |
+|------|---------|------|
+| crt.sh | `curl -s 'https://crt.sh/?q=%25.{{domain}}&output=json' \| python3 -c "import sys,json; [print(n) for d in json.load(sys.stdin) for n in d.get('name_value','').split('\n')]" \| sort -u` | 证书 SAN 域名列表 |
+| RapidDNS | `curl -s 'https://rapiddns.io/s/{{domain}}'` | HTML，从页面文本提取 A/CNAME 记录 |
+| urlscan | `curl -s 'https://urlscan.io/api/v1/search/?q=domain:{{domain}}'` | JSON，提取 `page.domain` 和 `page.url` |
+| Wayback CDX | `curl -s 'https://web.archive.org/cdx/search/cdx?url=*.{{domain}}&output=json&fl=original,timestamp,statuscode&limit=5000'` | JSONL，历史 URL 列表 |
+| Common Crawl | `curl -s 'https://data.commoncrawl.org/collinfo.json'` 查最新 index → `curl -s 'https://data.commoncrawl.org/crawl-data/CC-MAIN-YYYY-NN/indexes/cdx-00000.gz?url=*.{{domain}}&output=json&fl=url,status'` | JSONL，公开爬虫收录 URL |
+
+执行后立即：
+
+- 解析出所有范围内主机名，去重后与已有资产清单对比。
+- 新增主机加入 `inputs/followup-hosts.txt`，按语义分组（认证/API/管理/文件/测试/内部命名）。
+- **高语义分组优先探测**：SSO、passport、maven、pay、op、auth、uncover、virus、fileupload、jira、interface、callback、driver 等关键词命中 → 立即进入主动存活+关键路径复核。
+- 剩余主机按根路径 → 最小关键路径逐步消耗，每批结果写入 `evidence/` 并标注已覆盖/超时/无响应。
+
+### 6.3.2 覆盖差分检查
+
+被动枚举结束后执行。目标：确认 JS/前端资产中引用的每一个范围内域名都已进入主动探测。
+
+1. 从 JS bundle、前端 HTML、App 静态资源提取到的所有域名 → 写入 `outputs/js-api-inventory.json`。
+2. 从所有被动源（crt.sh / RapidDNS / urlscan / CDX / Common Crawl / 扫描管线子域）汇总去重域名 → 合并为 `inputs/all-known-hosts.txt`。
+3. 对比两者：`all-known-hosts.txt` 中缺少的 JS 引用域名 → 补充 DoH 解析 + 根路径探测。
+4. 对比反向：`all-known-hosts.txt` 中存在但未做任何主动探测的域名 → 按以下分类消耗：
+   - **高风险语义**（admin/sso/api/auth/pay/jira/fileupload/upload/virus/uncover/callback/interface/op/console） → 15 路径低频只读矩阵
+   - **内部命名**（*-inc.com/*.inc 后缀，非公开业务命名如 compass/dc/djoy/okr/zhaopin/hr/corehr） → 6 路径最小探测（`/`、`/api/`、`/.env`、`/.git/HEAD`、`/swagger-ui/index.html`、`/actuator/env`）
+   - **疑似静态/CDN**（static/cdn/img/assets/media/fonts 关键词） → 根路径 + 对象存储列表参数探测（`/?list-type=2&max-keys=10`）
+   - **TLS 失败/超时/DNS 失败** → 标记 `blocked_network_no_response`，记录当前出口结论
+5. 覆盖差分完成后，确认：范围内每个已知域名都已有 `deep_covered` / `blocked_network_no_response` / `static_fallback` 状态之一。
 
 ---
 
@@ -1110,6 +1144,11 @@ agent 完成信息收集后，必须检查：
 - 是否每条高价值资产都有对应的攻击面关系边。
 - 是否所有独立证书子域都标注了信任边界。
 - 是否所有提取到的密钥/AppID/Secret 都有使用场景标注。
+- 是否穷举了全部 5 个被动源（crt.sh / RapidDNS / urlscan / Wayback CDX / Common Crawl）。
+- 是否对被动新增域名按语义分组（高风险语义 → 15 路径 | 内部命名 → 6 路径 | 静态/CDN → 根+列表参数）。
+- 是否完成覆盖差分：JS/前端引用的每个域名都已有 `deep_covered` / `blocked_network_no_response` / `static_fallback` 状态。
+- 是否将所有 TLS 失败/超时/DNS 失败主机标记为 `blocked_network_no_response` 并写入资产清单。
+- 是否将静态兜底页（多主机同 SHA1/同字节数）标记为 `static_fallback` 并在漏洞归档记录 INFO 项。
 
 ---
 
@@ -1240,4 +1279,4 @@ json {   "target_company": "Example Inc.",   "target_domain": "example.com",   "
 
 ## 18. 示例最终结论摘要
 
-markdown 本次信息收集共发现 1 个主域、248 个候选子域、96 个存活 Web 资产、34 个 IP、17 个 API 入口、3 个 App 相关入口、12 个第三方关联资产。  其中高价值资产包括：登录中心、开放平台、API 网关、Swagger 文档入口、预发环境、文件上传服务和对象存储绑定域名。  共有 9 个资产归属证据不足，已标记为待确认。共有 12 个资产疑似属于第三方 SaaS 或供应商系统，未执行主动探测。 
+markdown 本次信息收集共发现 1 个主域、248 个候选子域、96 个存活 Web 资产、34 个 IP、17 个 API 入口、3 个 App 相关入口、12 个第三方关联资产。  其中高价值资产包括：登录中心、开放平台、API 网关、Swagger 文档入口、预发环境、文件上传服务和对象存储绑定域名。  共有 9 个资产归属证据不足，已标记为待确认。共有 12 个资产疑似属于第三方 SaaS 或供应商系统，未执行主动探测。

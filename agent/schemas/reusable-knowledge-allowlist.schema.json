@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybertest.example.invalid/schemas/reusable-knowledge-allowlist.schema.json",
+  "title": "Cybertest reusable knowledge allowlist",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "entries"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "match_type",
+          "value",
+          "scope",
+          "reason",
+          "source",
+          "reviewed_at",
+          "expires_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^ALLOW-[A-Z0-9][A-Z0-9-]{5,63}$"
+          },
+          "match_type": {
+            "type": "string",
+            "enum": [
+              "exact_domain",
+              "exact_ip"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "scope": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 12
+          },
+          "source": {
+            "type": "string",
+            "minLength": 5
+          },
+          "reviewed_at": {
+            "type": "string",
+            "pattern": "^20[0-9]{2}-[0-9]{2}-[0-9]{2}$"
+          },
+          "expires_at": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^20[0-9]{2}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

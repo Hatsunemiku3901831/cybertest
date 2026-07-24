@@ -14,13 +14,14 @@
 ## 调用优先级
 
 ```text
-stable tactic > active pattern > draft pattern > 原始 retrospective
+stable tactic > active tactic > active pattern > draft pattern > 原始 retrospective
 ```
 
 ## Pattern Memory
 
 | 文件 | 标签 | 适用场景 | 优先级 | 状态 | 最近确认 |
 |---|---|---|---|---|---|
+| [pattern/pattern-memory-2026-07-24-case-evidence-contracts.md](pattern/pattern-memory-2026-07-24-case-evidence-contracts.md) | evidence_contract, control_matrix, negative_control, evidence_invariant, authoritative_readback, rollback | Web/API 身份、对象和字段信任边界候选的单变量控制矩阵；仅作当前任务验证清单，不代表跨任务复现 | medium | draft | 2026-07-24 |
 | [pattern/pattern-memory-2026-06-15-recent-10.md](pattern/pattern-memory-2026-06-15-recent-10.md) | spa_js_intel, source_map_gap, api_auth_matrix, material_block, waf_cdn_noise, cors_boundary, login_flow_fidelity, static_pii, mobile_static, asset_scoring, default_creds, token_leak_boundary, stopping_rule, report_quality | 最近 10 个授权 Web/API、物流后台、Demo/UAT、云产品前端、静态敏感资源、多后台管理面任务的局部高频模式；同类任务开始时按标签选择性加载 | high | draft | 2026-06-15 |
 | [pattern/pattern-memory-2026-06-15-previous-10.md](pattern/pattern-memory-2026-06-15-previous-10.md) | ct_dns_recon, vhost_pivot, spa_js_intel, api_gateway_mapping, frontend_auth_bypass, cors_cookie_boundary, object_storage_boundary, dwr_interface_intel, cve_negative_validation, waf_cdn_noise, captcha_block, crypto_boundary, domain_hijack, ctf_client_signature, material_block, stopping_rule | 再往前 10 个授权 Web/API、赏金公开面、资产测绘、域名劫持、CVE 阴性验证和 CTF 前端签名任务的局部高频模式；同类任务开始时按标签选择性加载 | high | draft | 2026-06-15 |
 | [pattern/pattern-memory-2026-05-26-recent-10.md](pattern/pattern-memory-2026-05-26-recent-10.md) | frontend_intel, api_auth_boundary, object_storage, privacy_publication_boundary, broker, asset_correlation, waf_cdn_noise, cors_boundary, redirect_risk, ci_cd_exposure, negative_validation, upload_boundary, report_quality, stopping_rule | 最近 10 个授权 Web/API、政务门户、公共服务、商城/API、OA、Java/Tomcat、消息代理、对象存储任务的局部高频模式；任务开始时按标签选择性加载 | high | active | 2026-05-26 |
@@ -29,8 +30,10 @@ stable tactic > active pattern > draft pattern > 原始 retrospective
 
 | 文件 | 标签 | 适用场景 | 优先级 | 状态 | 最近确认 |
 |---|---|---|---|---|---|
+| [tactic/tactic-memory-2026-07-24-evidence-contracts.md](tactic/tactic-memory-2026-07-24-evidence-contracts.md) | control_matrix, negative_control, evidence_invariant, readback, rollback, false_positive_filter | Web/API 身份接受、对象授权和受控字段写入；按单变量矩阵、权威确认面、停止点和回滚闭合候选 | high | active | 2026-07-24 |
 
 ## Full Distillation
 
 | 文件 | 覆盖范围 | 关键结论 | 状态 | 日期 |
 |---|---|---|---|---|
+| [full/full-distillation-2026-07-24-knowledge-closure.md](full/full-distillation-2026-07-24-knowledge-closure.md) | 首批 3 个匿名 case、case index 与证据契约 tactic memory | 知识闭环可审计但每个根因家族仍只有 1 个 case；自动晋升保持为零，跨任务、跨技术栈和低噪声后才进入 skill review | active | 2026-07-24 |

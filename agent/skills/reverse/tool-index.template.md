@@ -1,74 +1,46 @@
-﻿# Reverse Engineering Tool Index
+# Reverse Tool Index Template
 
-> **This file is a TEMPLATE.** Run `refresh-tool-index.ps1` (Windows) or `refresh-tool-index.sh` (Linux) to generate the actual `tool-index.md` with your machine's real paths and versions.
->
-> - Scan time: (auto-generated)
-> - Routing entry: `SKILL.md` → `routing.md` → corresponding sub-skill
-> - Note: For MCP servers like jshookmcp, `yes` only means the local machine has the runtime (node/npx), NOT that it's registered and enabled in your AI client.
-> - **IMPORTANT**: All paths MUST be complete absolute paths (e.g., `D:\wangluo\jadx\bin\jadx.bat`). Never write just the tool name. Include version, full path, and verification command. This is the shared registry that ALL CLI clients rely on.
+本文件描述本地逆向工具探测结果的最小契约。稳定能力事实以
+`agent/capabilities/manifest.yaml` 中的 capability ID 为准；本模板不保存
+某台机器的安装路径、版本或可用状态。
 
-## Tool Availability Table
+## 本地生成
 
-| Tool | Skill | Purpose | Available | Path | Version | Source | Script Reference |
-|------|-------|---------|-----------|------|---------|--------|-----------------|
-| jadx | apk-reverse | Java decompiler | — | — | — | — | apk-reverse/scripts/decode.ps1 |
-| apktool | apk-reverse | APK unpack & rebuild | — | — | — | — | apk-reverse/scripts/decode.ps1 |
-| adb | apk-reverse | Device connection & logcat | — | — | — | — | apk-reverse/scripts/rebuild-sign-install.ps1 |
-| java | apk-reverse | Run jar & Java toolchain | — | — | — | — | apk-reverse/scripts/decode.ps1 |
-| apksigner | apk-reverse | APK signing | — | — | — | — | apk-reverse/scripts/rebuild-sign-install.ps1 |
-| zipalign | apk-reverse | APK alignment | — | — | — | — | apk-reverse/scripts/rebuild-sign-install.ps1 |
-| frida | apk-reverse | Frida dynamic injection | — | — | — | — | apk-reverse/scripts/frida-run.ps1 |
-| frida-ps | apk-reverse | Frida process enumeration | — | — | — | — | apk-reverse/scripts/frida-run.ps1 |
-| r2 | radare2 | radare2 main analyzer | — | — | — | — | radare2/scripts/recon.ps1 |
-| rabin2 | radare2 | Binary recon | — | — | — | — | radare2/scripts/recon.ps1 |
-| rasm2 | radare2 | Assemble/disassemble | — | — | — | — | radare2/SKILL.md |
-| radiff2 | radare2 | Binary diff | — | — | — | — | radare2/SKILL.md |
-| python | reverse-engineering | Script execution | — | — | — | — | — |
-| pip | reverse-engineering | Python package manager | — | — | — | — | — |
-| node | js-reverse | Node.js runtime & MCP | — | — | — | — | js-reverse/SKILL.md |
-| npx | js-reverse | Run temp npm packages | — | — | — | — | js-reverse/SKILL.md |
-| jshookmcp | js-reverse | JS Hook MCP (needs MCP client registration) | — | — | — | — | js-reverse/SKILL.md |
-| agent-browser | browser-automation | Playwright browser automation | — | — | — | — | browser-automation/SKILL.md |
-| playwright | browser-automation | Playwright engine | — | — | — | — | browser-automation/SKILL.md |
-| analyzeHeadless | reverse-engineering | Ghidra headless analysis | — | — | — | — | reverse-engineering/SKILL.md |
-| proxycat | pentest-tools | Proxy pool management | — | — | — | — | pentest-tools/SKILL.md |
-| nmap | pentest-tools | Port scan & service ID | — | — | — | — | pentest-tools/SKILL.md |
-
----
-
-## Capability Status (MCP Services)
-
-| Capability | Tool Available | MCP Registered | Service Online | Auto-installable | Install Method |
-|------------|:---:|:---:|:---:|:---:|----------------|
-| jadx | — | — | — | ✓ | github-release-zip |
-| apktool | — | — | — | ✓ | github-release-jar-wrapper |
-| frida | — | — | — | ✓ | pip-package |
-| idalib-mcp | — | — | — | ✓ | pip-package |
-| jshookmcp | — | ✓ | — | ✓ | npm-mcp |
-| anything-analyzer | — | ✓ | — | ✓ | local-http-mcp |
-| idapro | — | ✓ | — | ✓ | local-http-mcp |
-| burpsuite-mcp | — | ✓ | — | ✗ | local-http-mcp (manual Burp extension) |
-| r2 | — | — | — | ✓ | github-release-zip |
-| adb | — | — | — | ✓ | winget-package |
-| agent-browser | — | — | — | ✓ | npm-global |
-| ghidra-mcp | — | ✓ | — | ✓ | github-release-zip |
-| nmap | — | — | — | ✓ | winget-package |
-| proxycat | — | — | — | ✓ | git-clone |
-
-> ✓ = Yes | ✗ = No | — = Not scanned yet (run refresh-tool-index to populate)
-
----
-
-## How to Generate
-
-**Windows:**
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "<SKILL_ROOT>/skills/scripts/refresh-tool-index.ps1"
-```
-
-**Linux/Kali:**
 ```bash
-bash <SKILL_ROOT>/kali/scripts/refresh-tool-index.sh
+bash agent/skills/reverse/scripts/refresh-tool-index.sh
 ```
 
-After running, this template is replaced by `tool-index.md` with your machine's actual paths, versions, and availability status.
+生成结果为：
+
+```text
+agent/skills/reverse/tool-index.md
+agent/skills/reverse/tool-index.json
+```
+
+这两个文件是本机运行时缓存，已被 `.gitignore` 排除。探测脚本只读，不安装
+工具，也不修改 PATH、shell 配置或 Agent 客户端配置。
+
+## 输出约束
+
+- `available` 只表示本轮探测发现命令或 provider，不代表 MCP 已注册或健康。
+- `path` 兼容字段只允许保存命令/provider 标识，例如 `jadx` 或 `npx`；不得保存
+  解析后的绝对路径。
+- 版本和可用状态属于易变运行时信息，不得复制进主 skill 或路由规则。
+- 浏览器、HTTP 重放、CDP、抓包和 OAST 使用 capability registry 与
+  `tool/detect_capabilities.py` 探测。
+- 需要安装时，先根据当前平台和任务所需 capability 给出最小安装建议；不自动
+  安装大型工具或 GUI。
+
+## 机器可读记录
+
+```json
+{
+  "name": "jadx",
+  "skill": "apk-reverse",
+  "purpose": "APK Java/Kotlin decompiler",
+  "available": true,
+  "path": "jadx",
+  "version": "detected",
+  "install_hint": "platform-specific"
+}
+```

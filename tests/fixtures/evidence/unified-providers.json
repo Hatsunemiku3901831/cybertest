@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "EXP-ANON-001",
+  "candidate_id": "BC-ANON-001",
+  "envelopes": [
+    {
+      "schema_version": "1.0",
+      "evidence_id": "EV-BROWSER-001",
+      "candidate_id": "BC-ANON-001",
+      "tactic_id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "request_id": "self",
+      "auth_context": "controlled-user-a",
+      "browser_context": "synthetic-browser-a",
+      "control_variant": "baseline",
+      "observation": {
+        "provider_capability": "browser.interactive",
+        "fact": "self-object-selector-is-nonempty",
+        "invariant_results": {
+          "same-controlled-account": "controlled account alias remained unchanged for the baseline",
+          "same-object-family": "baseline and probe used the same synthetic object family"
+        }
+      },
+      "rollback_status": "not-required",
+      "evidence_refs": [
+        "evidence/envelopes/EV-BROWSER-001.json"
+      ],
+      "invariants_checked": [
+        "same-controlled-account",
+        "same-object-family"
+      ],
+      "redaction_level": "task"
+    },
+    {
+      "schema_version": "1.0",
+      "evidence_id": "EV-REPLAY-001",
+      "candidate_id": "BC-ANON-001",
+      "tactic_id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "request_id": "cross",
+      "auth_context": "controlled-user-a",
+      "browser_context": "synthetic-browser-a",
+      "control_variant": "candidate-probe",
+      "observation": {
+        "provider_capability": "http.replay",
+        "fact": "single-object-identifier-was-replaced",
+        "invariant_results": {
+          "same-method-route-and-session": "method, normalized route, and controlled session aliases matched the baseline"
+        }
+      },
+      "rollback_status": "not-required",
+      "evidence_refs": [
+        "evidence/envelopes/EV-REPLAY-001.json"
+      ],
+      "invariants_checked": [
+        "same-method-route-and-session"
+      ],
+      "redaction_level": "task"
+    },
+    {
+      "schema_version": "1.0",
+      "evidence_id": "EV-CDP-001",
+      "candidate_id": "BC-ANON-001",
+      "tactic_id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "request_id": "cross",
+      "auth_context": "controlled-user-a",
+      "browser_context": "synthetic-browser-a",
+      "control_variant": "candidate-probe",
+      "observation": {
+        "provider_capability": "js.cdp",
+        "fact": "runtime-request-parameter-correlated",
+        "invariant_results": {
+          "same-runtime-action": "the same synthetic UI action emitted the correlated runtime request"
+        }
+      },
+      "rollback_status": "not-required",
+      "evidence_refs": [
+        "evidence/envelopes/EV-CDP-001.json"
+      ],
+      "invariants_checked": [
+        "same-runtime-action"
+      ],
+      "redaction_level": "task"
+    },
+    {
+      "schema_version": "1.0",
+      "evidence_id": "EV-CAPTURE-001",
+      "candidate_id": "BC-ANON-001",
+      "tactic_id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "request_id": "cross",
+      "auth_context": "controlled-user-a",
+      "browser_context": "synthetic-browser-a",
+      "control_variant": "candidate-probe",
+      "observation": {
+        "provider_capability": "http.capture",
+        "fact": "request-response-pair-correlated",
+        "invariant_results": {
+          "same-request-correlation-id": "the redacted request and response summaries shared one correlation alias"
+        }
+      },
+      "rollback_status": "not-required",
+      "evidence_refs": [
+        "evidence/envelopes/EV-CAPTURE-001.json"
+      ],
+      "invariants_checked": [
+        "same-request-correlation-id"
+      ],
+      "redaction_level": "task"
+    },
+    {
+      "schema_version": "1.0",
+      "evidence_id": "EV-CLI-001",
+      "candidate_id": "BC-ANON-001",
+      "tactic_id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "request_id": "invalid",
+      "auth_context": "controlled-user-a",
+      "browser_context": null,
+      "control_variant": "negative-control",
+      "observation": {
+        "provider_capability": "cli.http",
+        "fact": "synthetic-nonexistent-object-rejected",
+        "invariant_results": {
+          "same-method-route-and-auth-context": "method, normalized route, and controlled auth alias matched the candidate probe"
+        }
+      },
+      "rollback_status": "not-required",
+      "evidence_refs": [
+        "evidence/envelopes/EV-CLI-001.json"
+      ],
+      "invariants_checked": [
+        "same-method-route-and-auth-context"
+      ],
+      "redaction_level": "task"
+    }
+  ]
+}

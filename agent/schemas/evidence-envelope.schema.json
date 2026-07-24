@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybertest.invalid/schemas/evidence-envelope.schema.json",
+  "title": "Cybertest Evidence Envelope",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "candidate_id",
+    "tactic_id",
+    "control_variant",
+    "observation",
+    "rollback_status",
+    "evidence_refs",
+    "invariants_checked",
+    "redaction_level"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "evidence_id": {"type": "string", "pattern": "^EV-[A-Za-z0-9._-]+$"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "tactic_id": {"type": "string", "minLength": 1},
+    "request_id": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "auth_context": {"type": ["string", "null"]},
+    "browser_context": {"type": ["string", "null"]},
+    "control_variant": {
+      "enum": ["baseline", "positive-control", "negative-control", "candidate-probe", "readback", "rollback"]
+    },
+    "observation": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "fact": {"type": "string", "minLength": 1},
+        "facts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "summary": {"type": "string", "minLength": 1},
+        "matrix_request_id": {"type": "string", "minLength": 1},
+        "invariant_results": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      },
+      "anyOf": [
+        {"required": ["fact"]},
+        {"required": ["facts"]},
+        {"required": ["summary"]}
+      ],
+      "additionalProperties": true
+    },
+    "state_before": {"type": "object"},
+    "state_after": {"type": "object"},
+    "rollback_status": {
+      "enum": ["not-required", "pending", "completed", "failed", "blocked"]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^evidence/[A-Za-z0-9._/-]+$"
+      }
+    },
+    "invariants_checked": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "redaction_level": {"enum": ["restricted", "task", "reusable"]}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "id": "INJECTION-ORDER-BY-BOOLEAN-ORACLE-001",
+  "version": 1,
+  "title": "ORDER BY 稳定排序布尔 Oracle",
+  "summary": "用两个稳定排序指纹和 true、false、null 三态，区分查询表达式求值与普通排序变化。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["api", "web"],
+    "technologies": ["sql", "rest"],
+    "endpoint_traits": ["sort-parameter", "order-by", "paginated-list"],
+    "observed_signals": ["sort_parameter", "stable_dual_order", "boolean_order_difference", "null_order_behavior"],
+    "business_objects": ["list", "search", "report"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["user_input_to_query"],
+    "evidence_stages": ["signal", "handler", "business_logic", "impact"]
+  },
+  "control_gap": {
+    "category": "injection",
+    "operation_type": "read",
+    "trust_boundary": "user_input_to_query",
+    "expected_controls": ["sort_allowlist", "parameterized_query", "expression_rejection"],
+    "suspected_missing_controls": ["sort_allowlist", "expression_rejection"]
+  },
+  "prerequisites": ["使用只读列表和固定最小页。", "先确认两个合法排序键产生稳定且不同的顺序指纹。"],
+  "material_requirements": [],
+  "request_matrix": [
+    {"id": "sort-a", "role": "positive_control", "description": "合法排序键 A，记录对象顺序指纹。"},
+    {"id": "sort-b", "role": "positive_control", "description": "合法排序键 B，确认稳定不同指纹。"},
+    {"id": "boolean-true", "role": "candidate_probe", "description": "提交只读 true 表达式映射到排序 A。"},
+    {"id": "boolean-false", "role": "candidate_probe", "description": "仅改变条件为 false，预期映射到排序 B。"},
+    {"id": "null-control", "role": "negative_control", "description": "使用 null 或无效表达式区分错误、默认排序和求值。"}
+  ],
+  "expected_observations": ["true/false 分别稳定匹配两个合法排序指纹。", "null/无效控制与 true/false 至少一种可区分。"],
+  "evidence_invariants": ["同一数据窗口、页大小和其余过滤条件。", "只保存对象顺序或类型指纹，不保存字段原值。", "多轮重复结果一致。"],
+  "false_positive_filters": ["数据集在请求间变化。", "缓存、随机排序或默认排序覆盖参数。", "只有一次响应长度差异。"],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "zero_raw_value",
+  "readonly_fallback": true,
+  "stop_conditions": ["三态稳定闭合后停止，不枚举数据库数据。", "数据集不稳定或出现副作用时停止。"],
+  "rollback": {"required": false, "steps": []},
+  "root_cause_family": "order_by_expression_injection",
+  "affected_instance_key_fields": ["scheme_host_port", "route_template", "sort_parameter", "query_family"],
+  "rating_boundary": "排序布尔 Oracle 证明表达式求值；数据库信息、数据提取或认证影响需另证。",
+  "do_not_overclaim": "不得把普通排序差异、单次长度差或 SQL 关键字回显写成数据泄露或完整 SQL 注入。",
+  "reopen_conditions": ["获得稳定数据窗口。", "发现新的排序表达式或独立数据库错误证据。"],
+  "required_capabilities": [
+    {"id": "http.replay", "required": true, "fallbacks": ["cli.http"]}
+  ],
+  "source_cases": [
+    "CASE-INJECTION-ORDER-BY-BOOLEAN-ORACLE-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": ["unstable_dataset", "random_sorting", "parameter_ignored"],
+  "next_discriminating_action": "先用两个合法排序键建立稳定双指纹，再执行 true、false、null 三态。",
+  "reroute_triggers": ["合法排序本身不稳定。", "排序参数被忽略。", "出现数据库错误或其他注入证据。"],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "jwt-acceptance",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "authentication",
+    "target_types": ["api", "admin"],
+    "technologies": ["jwt", "rest"],
+    "endpoint_traits": ["admin-route", "paginated-list"],
+    "business_objects": ["member"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["customer_to_admin"],
+    "observed_signals": ["customer_jwt", "admin_route", "header_position"],
+    "suspected_control_gaps": ["audience_validation", "role_authorization"],
+    "auth_contexts": ["controlled-customer"],
+    "evidence_stage": "route",
+    "available_materials": ["controlled_source_token"],
+    "available_capabilities": ["http.replay"],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {
+    "max_safe_validation_level": "readonly",
+    "allowed_operation_types": ["read"]
+  },
+  "expected": {
+    "route_status": "matched",
+    "top1": "AUTH-JWT-ACCEPTANCE-MATRIX-001"
+  }
+}

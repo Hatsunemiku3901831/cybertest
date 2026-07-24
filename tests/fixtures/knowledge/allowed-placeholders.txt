@@ -1,0 +1,7 @@
+Reusable-knowledge placeholder fixture
+
+- API: https://api.example.com/v1/{object_id}
+- IPv4: 192.0.2.10
+- Email: user@example.com
+- Local path template: {WORKSPACE_ROOT}/{username}
+- Credential template: secret={REDACTED_SECRET}

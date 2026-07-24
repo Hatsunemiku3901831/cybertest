@@ -294,43 +294,14 @@ idapro_rename(batch={"func": [{"addr": "函数地址", "name": "有意义的名�
 
 ## 按需自举（On-Demand Bootstrap）
 
-本 skill 的入口脚本已接入统一自举系统。
+IDA Pro 是商业软件，必须由用户提供并按厂商方式安装。入口脚本只做能力探测，
+不会根据猜测路径安装 IDA、idalib 或插件：
 
-### 自动化能力边界
-
-| 工具 | 可自动安装 | 安装方式 | 说明 |
-|------|-----------|---------|------|
-| idalib-mcp | ✓ | pip install (from GitHub) | `start.ps1` 缺失时自动安装 |
-| IDA Pro 本体 | ✗ | 商业软件，需手动安装 | 设置 `IDADIR` 环境变量指向安装目录 |
-
-### 安装步骤（已验证）
-
-```cmd
-# 1. 设置 IDA 路径（替换为你的实际 IDA 安装目录）
-setx IDADIR "<你的IDA安装目录>"
-
-# 2. 从 GitHub 安装 ida-pro-mcp（PyPI 上的 ida-mcp 是另一个项目，不要装错！）
-pip install git+https://github.com/mrexodia/ida-pro-mcp.git
-
-# 3. 安装 IDA 插件（选择 Streamable HTTP + Global + 全选客户端）
-ida-pro-mcp --install
-
-# 4. 重启 IDA Pro，打开目标文件
-# 插件自动监听 127.0.0.1:13337
-
-# 5. 验证
-ida-pro-mcp --config
+```bash
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect idapro
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run idapro
 ```
 
-> ⚠️ **注意**：PyPI 上的 `ida-mcp` 包（作者 jtsylve）是另一个项目，不是我们需要的。
-> 必须从 GitHub 安装 `mrexodia/ida-pro-mcp`。
-
-### 自举触发点
-
-- `scripts/start.ps1`：缺 `idalib-mcp` 时自动调用 `bootstrap-reverse.ps1`
-- MCP 注册：bootstrap 会自动把 `idapro` 写入 Claude MCP 配置
-
-### 前置条件
-
-- IDA Pro 已安装且 `IDADIR` 环境变量已设置（或脚本内默认路径正确）
-- Python 已安装（idalib-mcp 依赖 Python）
+需要 MCP 时，先从实际运行的插件/provider 获取 URL，设置 `IDAPRO_MCP_URL`，
+再显式执行 `--apply --mcp-config <file> idapro`。端口、provider、安装目录和
+健康状态都以运行时结果为准；未提供配置文件时不会写入任何客户端配置。

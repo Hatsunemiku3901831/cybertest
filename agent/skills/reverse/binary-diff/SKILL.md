@@ -269,21 +269,15 @@ found_struct_offset → idapro_set_comments(addr=insn_va, comment="{struct_name}
 
 ## 按需自举（On-Demand Bootstrap）
 
-### 工具依赖
+本 skill 不承诺自动安装 IDA、Python 包或 LLM provider。先探测已有运行时：
 
-| 工具 | 用途 | 可自动安装 |
-|------|------|-----------|
-| IDA Pro | 导出反汇编/伪代码 | ✗（商业软件） |
-| Python | 脚本执行、API 调用 | ✓ |
-| PyYAML | 解析 LLM 返回的 YAML | ✓（pip install pyyaml） |
-| LLM API | 执行比对 | 需要 API key |
+```bash
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect idapro
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run idapro
+```
 
-### 说明
-
-本 skill 的核心不依赖重型工具安装，主要依赖：
-- IDA Pro 已有（用 `ida-reverse/` skill 管理）
-- Python + requests/httpx（调 API）
-- 一个 LLM API endpoint
+IDA 由 `ida-reverse/` 管理；Python 依赖和 LLM endpoint 由当前任务环境显式提供。
+API key 只进入受限任务环境，不写入 skill、bootstrap 输出或全局客户端配置。
 
 ---
 

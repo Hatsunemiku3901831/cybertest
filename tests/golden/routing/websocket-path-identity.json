@@ -1,0 +1,26 @@
+{
+  "name": "websocket-path-identity",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "authentication",
+    "target_types": ["websocket"],
+    "technologies": ["websocket", "json"],
+    "endpoint_traits": ["identity-in-path"],
+    "business_objects": ["peer"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["anonymous_to_peer"],
+    "observed_signals": ["peer_id_in_path", "anonymous_101", "same_identity_replacement"],
+    "suspected_control_gaps": ["peer_authentication", "channel_authorization"],
+    "auth_contexts": ["anonymous"],
+    "evidence_stage": "business_logic",
+    "available_materials": ["controlled_peer_identity"],
+    "available_capabilities": ["http.capture"],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {"max_safe_validation_level": "readonly", "allowed_operation_types": ["read"]},
+  "expected": {"route_status": "matched", "top1": "INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"}
+}

@@ -1,0 +1,227 @@
+{
+  "state": {
+    "state_version": "2.0",
+    "domain": "example.invalid",
+    "mode": "quick",
+    "phases_requested": [
+      "subfinder",
+      "dnsx",
+      "httpx",
+      "katana",
+      "gf",
+      "nuclei",
+      "js_intel",
+      "api_contract",
+      "control_gap",
+      "candidate_queue",
+      "tactic_match",
+      "semantic_quality_gate"
+    ],
+    "phase_outputs": {
+      "subfinder": {"ok": true, "summary": "1 subdomain"},
+      "dnsx": {"ok": true, "summary": "2 DNS records"},
+      "httpx": {"ok": true, "summary": "3 alive URLs"},
+      "katana": {"ok": true, "summary": "1 URL"},
+      "gf": {"ok": true, "summary": "1 pattern"},
+      "nuclei": {"ok": true, "summary": "1 informational result"},
+      "js_intel": {
+        "ok": true,
+        "status": "completed",
+        "summary": "offline JS intelligence complete",
+        "output_file": "phase_js_intel/result.json"
+      },
+      "api_contract": {
+        "ok": true,
+        "status": "completed",
+        "summary": "offline API contract complete",
+        "output_file": "phase_api_contract/result.json"
+      },
+      "control_gap": {
+        "ok": true,
+        "status": "completed",
+        "summary": "offline control-gap analysis complete",
+        "output_file": "phase_control_gap/result.json"
+      },
+      "candidate_queue": {
+        "ok": true,
+        "status": "completed",
+        "summary": "1 candidate",
+        "output_file": "phase_candidate_queue/result.json"
+      },
+      "tactic_match": {
+        "ok": true,
+        "status": "completed",
+        "summary": "offline tactic matching complete",
+        "output_file": "phase_tactic_match/result.json"
+      }
+    }
+  },
+  "documents": {
+    "subfinder": {
+      "ok": true,
+      "subdomains": [{"host": "app.example.invalid"}]
+    },
+    "dnsx": {
+      "ok": true,
+      "targets": ["example.invalid", "app.example.invalid"],
+      "results": [
+        {
+          "host": "example.invalid",
+          "a": ["192.0.2.10"],
+          "codex_dns_flags": {"fake_ip": false}
+        },
+        {
+          "host": "app.example.invalid",
+          "a": ["192.0.2.11"],
+          "codex_dns_flags": {"fake_ip": false}
+        }
+      ]
+    },
+    "httpx": {
+      "ok": true,
+      "targets": ["example.invalid", "app.example.invalid"],
+      "results": [
+        {
+          "url": "https://example.invalid/",
+          "host": "example.invalid",
+          "body_hash": "sha256-baseline-a",
+          "spa_fallback": false
+        },
+        {
+          "url": "https://app.example.invalid/login",
+          "host": "app.example.invalid",
+          "body_hash": "sha256-baseline-b",
+          "spa_fallback": false
+        },
+        {
+          "url": "https://app.example.invalid/api",
+          "host": "app.example.invalid",
+          "body_hash": "sha256-baseline-c",
+          "spa_fallback": false
+        }
+      ]
+    },
+    "katana": {
+      "ok": true,
+      "results": [{"request_url": "https://app.example.invalid/login"}]
+    },
+    "gf": {
+      "ok": true,
+      "patterns": [{"name": "idor", "matched_urls": ["https://app.example.invalid/api?id=1"]}]
+    },
+    "nuclei": {
+      "ok": true,
+      "results": [{"template_id": "anonymous-informational-baseline", "severity": "info"}]
+    },
+    "history": {
+      "ok": true,
+      "results": []
+    },
+    "js_intel": {
+      "ok": true,
+      "phase_id": "js_intel",
+      "analysis_mode": "offline",
+      "status": "completed",
+      "observations": {
+        "javascript_assets": [],
+        "source_maps": [],
+        "api_references": ["/api"]
+      }
+    },
+    "api_contract": {
+      "ok": true,
+      "phase_id": "api_contract",
+      "analysis_mode": "offline",
+      "status": "completed",
+      "observations": {
+        "endpoints": [{"route_template": "/api"}],
+        "endpoint_count": 1
+      }
+    },
+    "control_gap": {
+      "ok": true,
+      "phase_id": "control_gap",
+      "analysis_mode": "offline",
+      "status": "completed",
+      "observations": {
+        "suspected_control_gaps": [],
+        "gap_count": 0
+      }
+    },
+    "attack_surface": {
+      "coverage": {
+        "js_chunks": {"checked": true},
+        "source_maps": {"checked": true},
+        "api_bases": {"checked": true},
+        "api_docs": {"checked": true},
+        "login_surfaces": {"checked": true},
+        "oauth_surfaces": {"checked": true},
+        "upload_surfaces": {"checked": true},
+        "download_surfaces": {"checked": true},
+        "import_export_surfaces": {"checked": true},
+        "nonproduction_surfaces": {"checked": true}
+      }
+    },
+    "candidate_queue": {
+      "ok": true,
+      "candidates": [
+        {
+          "id": "BC-ANON-001",
+          "schema_version": "2.0",
+          "queue": "P1",
+          "status": "triaged",
+          "matched_tactics": [
+            {
+              "id": "AUTHZ-ANON-001",
+              "score": 80
+            }
+          ],
+          "validation_contract": {
+            "request_matrix": [
+              {
+                "id": "self-baseline",
+                "role": "baseline"
+              },
+              {
+                "id": "fixed-invalid",
+                "role": "negative_control"
+              }
+            ]
+          },
+          "negative_controls": ["fixed-invalid"],
+          "evidence_invariants": ["same response shape and object scope"],
+          "reopen_conditions": ["new differential evidence"]
+        }
+      ]
+    },
+    "tactic_match": {
+      "ok": true,
+      "phase_id": "tactic_match",
+      "analysis_mode": "offline",
+      "status": "completed",
+      "observations": {
+        "matches": [
+          {
+            "candidate_id": "BC-ANON-001",
+            "matched_tactics": [{"id": "AUTHZ-ANON-001", "score": 80}]
+          }
+        ],
+        "matched_candidate_count": 1,
+        "route_gap_count": 0
+      }
+    },
+    "vulnerability_archive": {
+      "totals": {"total": 0},
+      "vulnerabilities": []
+    },
+    "report": {
+      "entity_counts": {
+        "server_declared_total": 3,
+        "sample_rows": 3,
+        "unique_entities": 2
+      },
+      "vulnerabilities": [],
+      "do_not_overclaim_compliant": true
+    }
+  }
+}

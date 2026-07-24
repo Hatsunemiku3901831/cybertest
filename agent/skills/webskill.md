@@ -974,7 +974,7 @@ Agent 每一轮都应执行以下逻辑：
 
 ```text
 手机号：13333333333
-邮箱：114514@gmail.com
+邮箱：user@example.com
 密码：12345678Abc
 ```
 

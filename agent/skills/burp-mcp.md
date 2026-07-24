@@ -1,42 +1,35 @@
 # Burp MCP 集成 Skill
 
-本 Skill 用于在 Codex 中调用 Burp Suite MCP Server，实现代理抓包、请求重放、Repeater/Intruder 集成、编解码和配置管理等能力。适用于授权安全测试中的流量分析、漏洞验证和请求篡改场景。
+本 Skill 用于通过 `http.replay` capability 调用 Burp Suite MCP Server，实现代理抓包、请求重放、Repeater/Intruder 集成、编解码和配置管理。适用于授权安全测试中的流量分析、漏洞验证和请求篡改场景；证据输出统一遵循 `dynamic-evidence.md` 和 Evidence Envelope。
 
 ## 1. 前置条件
 
-- Burp Suite Professional / Community 已启动
-- Burp Suite MCP Server 扩展已安装（BApp Store: `PortSwigger/mcp-server`）
-- MCP 服务器端口 `9876` 在 Burp 中已启用
-- Claude Code 项目已配置 Burp MCP 连接
+- Burp Suite Professional / Community 已启动。
+- Burp Suite MCP Server 扩展已安装并启用。
+- 运行时工具发现或 `tool/detect_capabilities.py` 已确认 `http.replay` 可用。
+- MCP 地址来自当前连接器配置或环境变量，不从个人配置路径推断。
 
 ### 1.1 项目 MCP 配置
 
-当前 MCP 配置在 `/Users/umisonoda/.claude.json` 中。如需在当前项目独立启用，在 `.claude/settings.local.json` 添加：
+连接信息优先由 MCP 运行时发现。需要显式配置时使用环境变量：
 
-```json
-{
-  "mcpServers": {
-    "burp": {
-      "type": "sse",
-      "url": "http://127.0.0.1:9876"
-    }
-  }
-}
+```bash
+export CYBERTEST_BURP_MCP_HOST=127.0.0.1
+export CYBERTEST_BURP_MCP_PORT=9876
+export CYBERTEST_BURP_MCP_URL=http://${CYBERTEST_BURP_MCP_HOST}:${CYBERTEST_BURP_MCP_PORT}
 ```
 
-MCP 工具在 Claude Code 中以 `mcp__burp__<tool_name>` 格式调用。
+上述主机和端口只是可覆盖的本地默认值，不是固定事实。不要把个人配置文件路径、认证值或完整连接 URL 写入项目文档或能力缓存。工具名称和参数以当前 MCP 运行时返回的 schema 为准。
 
 ### 1.2 验证可用性
 
-```bash
-# 检查 Burp MCP 服务器端口
-lsof -i :9876 -P | grep LISTEN
+1. 运行 `python3 tool/detect_capabilities.py --dry-run`。
+2. 检查当前 MCP 运行时是否暴露请求重放和历史查询能力。
+3. 如需连接诊断，对 `CYBERTEST_BURP_MCP_URL` 做一次本地低影响连通性检查。
 
-# 验证 SSE 连接
-curl -s -m 3 http://127.0.0.1:9876/
-```
+## 2. 常见工具能力映射
 
-## 2. 可用工具清单（24 个）
+以下名称是已知 Burp MCP provider 的常见接口，用于解释工作流，不是固定数量或安装事实。调用前必须以运行时发现到的工具 schema 为准；名称不同时按 capability 语义匹配。
 
 ### 2.1 HTTP 请求工具
 
@@ -126,11 +119,10 @@ Burp MCP Server 使用 **SSE (Server-Sent Events) + JSON-RPC 2.0** 协议。
 
 | 项目 | 值 |
 |------|------|
-| 地址 | `http://127.0.0.1:9876` |
+| 地址 | `CYBERTEST_BURP_MCP_URL` 或运行时发现结果 |
 | SSE 端点 | `GET /` |
 | 消息端点 | `POST /?sessionId=<sid>` |
-| 协议版本 | `2024-11-05` |
-| 当前版本 | `burp-suite` v1.1.2 |
+| 协议/版本 | 以当前 MCP 初始化响应为准 |
 
 ### 3.1 MCP 会话流程
 
@@ -236,8 +228,8 @@ data: {"id":1,"jsonrpc":"2.0","result":{...}}
 | 限制 | 说明 | 应对 |
 |------|------|------|
 | 代理历史大查询超时 | `count >= 5` 时可能 30s 超时 | 使用 `count=1` 或 `get_proxy_http_history_regex` |
-| 无 Collaborator 工具 | 当前 Pro 版本的 Collaborator 工具在此 Burp 实例中不可用 | 使用外部 OOB 方案 |
-| 无 Scanner Issues 工具 | 需要 Professional 版 Burp | 使用 nuclei/zap 替代 |
+| 无 Collaborator/OAST 能力 | 当前 provider 未暴露对应 capability | 使用已注册的 `oast.callback`；不可用则标记材料阻塞 |
+| 无 Scanner Issues 工具 | 当前 provider 或 Burp 版本未暴露 | 使用 nuclei/zap 产生线索，再人工验证 |
 | Repeater Tab 创建不返回响应 | `create_repeater_tab` 仅确认执行 | 在 Burp UI 中查看 Repeater Tab |
 | 配置编辑需显式开启 | `set_*_options` 需要 Burp 扩展设置中启用 | 默认关闭，需手动开启 |
 | 单个 SSE 连接 | Burp MCP 同时只支持一个 SSE 长连接 | 避免并发连接 |
@@ -256,17 +248,17 @@ data: {"id":1,"jsonrpc":"2.0","result":{...}}
 ## 7. 故障排查
 
 ### 7.1 检查 Burp MCP 服务器状态
-```bash
-lsof -i :9876 -P | grep LISTEN
-# 应看到 JavaApplicationStub 监听在 localhost:9876
-```
+
+- 读取 `CYBERTEST_BURP_MCP_URL` 或当前连接器发现结果。
+- 检查已配置端口是否监听；不要假定固定端口。
+- 再运行 `tool/detect_capabilities.py --input <runtime-tools.json> --dry-run` 确认 `http.replay`。
 
 ### 7.2 检查 Burp MCP 扩展是否安装
 在 Burp Suite → Extensions → BApp Store → 搜索 "MCP Server" → 确认已安装
 
 ### 7.3 SSE 连接失败
 - 检查 Burp 是否运行中
-- 检查防火墙是否阻止 localhost:9876
+- 检查防火墙是否阻止当前配置的本地地址和端口
 - 重启 Burp Suite 和 MCP Server 扩展
 
 ### 7.4 工具调用超时

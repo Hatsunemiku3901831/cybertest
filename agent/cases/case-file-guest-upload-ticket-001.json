@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-FILE-GUEST-UPLOAD-TICKET-001",
+  "title": "游客上传票据的缺省约束差分",
+  "summary": "匿名迁移案例契约：对正常、完全缺省和明确错误的文件约束执行单变量票据差分，再以一个自有小文件闭合写入、精确回读和删除；它不代表真实目标或已确认结果。",
+  "scene": "guest-upload-ticket-fail-open-contract",
+  "target_type": [
+    "mobile-api",
+    "single-page-application",
+    "web-api"
+  ],
+  "technology": [
+    "multipart",
+    "object-storage",
+    "rest"
+  ],
+  "business_object": [
+    "object",
+    "upload-ticket"
+  ],
+  "operation_type": [
+    "readback",
+    "upload"
+  ],
+  "trust_boundary": [
+    "anonymous-to-storage",
+    "ticket-to-object-policy"
+  ],
+  "observed_signal": [
+    "guest-upload-ticket-route",
+    "missing-file-constraints",
+    "public-object-url"
+  ],
+  "root_cause_family": "guest_upload_ticket_fail_open",
+  "evidence_mode": [
+    "controlled-test-object",
+    "state-readback",
+    "ticket-differential"
+  ],
+  "required_material": [
+    "controlled-small-file",
+    "exact-delete-or-expiry-path",
+    "known-normal-ticket-request"
+  ],
+  "matched_tactics": [
+    "FILE-GUEST-UPLOAD-TICKET-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "three-state-ticket-diff",
+      "description": "固定租户、目录、用途和其它元数据，只改变正常、缺省与明确错误的文件约束。"
+    },
+    {
+      "id": "one-file-write-readback",
+      "description": "仅在票据差分成立后上传一个自有无敏感小文件，并以精确对象 URL 和哈希回读。"
+    },
+    {
+      "id": "delete-and-verify",
+      "description": "删除测试对象并复核精确 URL 不再返回测试内容。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "ticket-only",
+      "description": "票据签发成功但服务端上传约束仍拒绝文件时，不能证明即时写入。"
+    },
+    {
+      "id": "client-composed-preview",
+      "description": "客户端拼接出的公开 URL 不等于对象已存在或匿名可读。"
+    },
+    {
+      "id": "temporary-equals-no-impact",
+      "description": "临时标记只影响持久性表述，不能替代即时写入与精确回读事实。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "票据签发与对象存储写入共同绑定文件类型、大小、租户、目录、用途和时效，并在回读时执行预期权限。",
+    "suspected_missing_control": "完全缺省文件约束时票据签发采用宽松默认值，且后续写入未重新执行必要约束。",
+    "impact_boundary": "这是迁移验证契约；最多以一个自有小文件证明即时写入与精确公开回读，不外推持久化、覆盖、目录枚举、代码执行或跨租户影响。"
+  },
+  "request_matrix": [
+    {
+      "id": "normal-ticket",
+      "variant": "positive-control",
+      "auth_context": "guest-or-controlled-test-context",
+      "mutation": "valid-file-name-type-and-size",
+      "expected_observation": "得到正常约束票据及其类型、大小、租户、用途和时效结构。"
+    },
+    {
+      "id": "missing-constraints",
+      "variant": "candidate-probe",
+      "auth_context": "guest-or-controlled-test-context",
+      "mutation": "omit-file-type-and-size",
+      "expected_observation": "只在缺省请求产生更宽松且可用约束时继续最小写入验证。"
+    },
+    {
+      "id": "invalid-constraints",
+      "variant": "negative-control",
+      "auth_context": "guest-or-controlled-test-context",
+      "mutation": "explicitly-invalid-type-and-size",
+      "expected_observation": "识别统一签发响应、客户端默认值与服务端拒绝分支。"
+    },
+    {
+      "id": "minimal-upload-readback",
+      "variant": "readback",
+      "auth_context": "guest-or-controlled-test-context",
+      "mutation": "one-controlled-small-file",
+      "expected_observation": "输入与精确回读内容哈希一致，且未访问任何非测试对象。"
+    },
+    {
+      "id": "delete-test-object",
+      "variant": "rollback",
+      "auth_context": "controlled-cleanup-context",
+      "mutation": "delete-exact-test-object",
+      "expected_observation": "精确对象 URL 不再返回测试内容，且没有残余任务或副作用。"
+    }
+  ],
+  "false_positive_filters": [
+    "票据生成成功但实际上传被服务端约束拒绝时不得确认写入。",
+    "公开预览 URL 仅由客户端推导且没有精确回读时不构成对象公开。",
+    "临时对象可读不等于长期持久化、任意覆盖或代码执行。",
+    "管理端鉴权、传统临时上传和游客票据缺省约束应按不同根因去重。"
+  ],
+  "evidence_invariants": [
+    "三种票据请求每轮只改变文件约束，租户、目录、用途和其它字段保持一致。",
+    "动态闭环只使用一个自有、无敏感、可删除的小文件。",
+    "上传输入与精确回读内容使用同一哈希比较，不枚举对象目录。",
+    "写入前记录清理路径，写入后必须完成删除和不可读复核。"
+  ],
+  "stop_conditions": [
+    "一个自有小文件完成写入、精确回读和删除后立即停止。",
+    "无法确认删除路径、发现非测试对象或租户边界不明时停止写入。",
+    "正常票据正控失败或三态票据无稳定差分时停止并降级为未验证线索。"
+  ],
+  "rollback": {
+    "required": true,
+    "method": "删除精确测试对象，再以同一 URL 复核测试内容不可读；若依赖时效清理，等待受控最小时效并复核。",
+    "success_criteria": "测试对象不可读、没有新增目录或任务、没有触碰任何非测试对象。"
+  },
+  "sources": [
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 Guest Upload Ticket 家族规定的缺省/正常票据差分、最小文件、公共回读和时效边界。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

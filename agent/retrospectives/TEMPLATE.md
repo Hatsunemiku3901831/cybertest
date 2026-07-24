@@ -1,5 +1,7 @@
 # 渗透测试复盘
 
+> 数据规则：本文件属于 Reusable Knowledge 输入，遵循 [`../policies/evidence-data-handling.md`](../policies/evidence-data-handling.md)。只使用目标别名和脱敏事实，不记录真实域名、IP、账号、个人信息或可重放秘密；原始值仅通过任务受限证据引用追溯。
+
 日期:
 任务类型:
 目标别名:

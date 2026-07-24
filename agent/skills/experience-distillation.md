@@ -59,6 +59,16 @@ full distillation 用于经验治理，不只是总结。
 - 哪些规则应写入 `agent/AGENT.md` 的硬规则或专项 skill。
 - 哪些经验可能已经过拟合。
 
+## Case 知识闭环
+
+- 匿名 case 遵循 `../schemas/case.schema.json`，只保留场景、信任边界、有效/无效路径、请求矩阵、误报过滤、不变量、停止/回滚和来源相对路径及 SHA-256。
+- `../cases/index.json` 是多维检索事实源，`../cases/index.md` 由 `../../tool/build_case_index.py` 确定性生成；修改 case 后运行 `--verify-sources --check`。
+- case 的 `matched_tactics` 与 tactic 的 `source_cases` 必须双向一致；迁移单个 case 不等于已经完成跨任务历史验证。
+- `../../tool/promote_memory.py` 只能生成带来源 hash 和阻塞项的晋升建议，不得自动写入稳定 skill。
+- case、memory、tactic、skill、reference 和匿名 fixture 写入后运行默认全范围
+  `../../tool/scan_reusable_knowledge_leaks.py --dry-run --fail-on-findings`；
+  domain/IP 等中置信提示逐条复核，正式发布前可追加 `--fail-severity medium`。
+
 ## 晋升为 Skill 的标准
 
 只有同时满足以下条件的 memory 才建议晋升到 `agent/skills/` 或写入主 Agent 规则：
@@ -76,4 +86,4 @@ full distillation 用于经验治理，不只是总结。
 - 小蒸馏经验注册到 `agent/memory/index.md`，不要直接注册成 skill。
 - tactic/full 确认稳定后，可提出晋升建议；只有用户明确要求注册或修改时，才写入 `agent/skills/` 或 `agent/AGENT.md`。
 - 修改 memory 状态时，同步更新对应文件头部状态和 `agent/memory/index.md`。
-- 复盘和 memory 必须匿名化，不得记录真实凭据、token、cookie、JWT、私有域名、内部 IP、callback URL 或可识别客户信息。
+- 复盘、memory 和晋升材料统一遵循 [`../policies/evidence-data-handling.md`](../policies/evidence-data-handling.md) 的 Reusable Knowledge 规则：必须匿名化，不得记录真实目标标识、个人信息或任何可重放秘密。

@@ -36,7 +36,7 @@
 
 - HackSkills 只用于明确授权目标、合法研究、防御验证和规则允许的漏洞赏金测试。
 - 不要把 HackSkills 内容当成自动确认漏洞的证据；扫描器或 payload 命中必须结合人工判断、请求/响应证据和业务影响。
-- 不要记录真实凭据、token、cookie、JWT、私有域名、内部 IP、callback URL 或可识别客户信息。
+- 证据、秘密、任务归档和可复用知识统一遵循 [`../policies/evidence-data-handling.md`](../policies/evidence-data-handling.md)；完整原值只进入任务受限证据区，HackSkills、memory、tactic 和 fixture 不得保存真实目标标识或可重放秘密。
 - 如果需要写临时脚本，放入 `temporarytool/`；如果沉淀为通用能力，再整理到 `tool/` 并注册到 `agent/AGENT.md`。
 
 ## 路由提示

@@ -11,7 +11,7 @@
 
 ```javascript
 Java.perform(function() {
-    var TargetClass = Java.use("com.target.ClassName");
+    var TargetClass = Java.use("com.example.app.ClassName");
     
     // Hook 无参方法
     TargetClass.methodName.implementation = function() {
@@ -35,7 +35,7 @@ Java.perform(function() {
 
 ```javascript
 Java.perform(function() {
-    var TargetClass = Java.use("com.target.ClassName");
+    var TargetClass = Java.use("com.example.app.ClassName");
     TargetClass.$init.overload('java.lang.String').implementation = function(arg) {
         console.log("[*] new ClassName(" + arg + ")");
         this.$init(arg);
@@ -47,7 +47,7 @@ Java.perform(function() {
 
 ```javascript
 Java.perform(function() {
-    var TargetClass = Java.use("com.target.ClassName");
+    var TargetClass = Java.use("com.example.app.ClassName");
     var methods = TargetClass.class.getDeclaredMethods();
     methods.forEach(function(method) {
         console.log(method.toString());
@@ -406,7 +406,7 @@ Java.perform(function() {
 Java.perform(function() {
     var ClassLoader = Java.use("java.lang.ClassLoader");
     ClassLoader.loadClass.overload('java.lang.String').implementation = function(name) {
-        if (name.indexOf("com.target") !== -1) {
+        if (name.indexOf("com.example.app") !== -1) {
             console.log("[ClassLoader] " + name);
         }
         return this.loadClass(name);

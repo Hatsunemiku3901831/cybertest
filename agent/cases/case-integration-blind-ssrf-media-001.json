@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-INTEGRATION-BLIND-SSRF-MEDIA-001",
+  "title": "媒体处理链的盲 SSRF 回连归因",
+  "summary": "匿名迁移案例契约：为每个候选使用唯一受控 OAST 路径，以不可解析地址和浏览器预读为负控，分离页面错误与服务端媒体回连；它不代表真实目标或已确认 SSRF。",
+  "scene": "media-processor-oast-attribution-contract",
+  "target_type": [
+    "single-page-application",
+    "web-api"
+  ],
+  "technology": [
+    "http",
+    "media-processor",
+    "oast"
+  ],
+  "business_object": [
+    "document-preview",
+    "remote-image",
+    "remote-resource"
+  ],
+  "operation_type": [
+    "callback",
+    "read"
+  ],
+  "trust_boundary": [
+    "browser-to-server-fetch",
+    "user-url-to-media-processor"
+  ],
+  "observed_signal": [
+    "media-user-agent-or-range",
+    "remote-url-parameter",
+    "server-correlated-oast-callback"
+  ],
+  "root_cause_family": "server_side_remote_fetch_validation",
+  "evidence_mode": [
+    "callback-correlation",
+    "negative-control",
+    "unique-oast-path"
+  ],
+  "required_material": [
+    "controlled-oast-endpoint",
+    "one-unique-path-per-request",
+    "prefetch-observation-control"
+  ],
+  "matched_tactics": [
+    "INTEGRATION-BLIND-SSRF-MEDIA-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "unique-callback-correlation",
+      "description": "每次请求使用独立高熵回调路径，并将发起时间与 OAST 命中时序关联。"
+    },
+    {
+      "id": "browser-prefetch-exclusion",
+      "description": "在候选探针前后验证浏览器、扩展、本地代理和扫描器不会独立访问该路径。"
+    },
+    {
+      "id": "media-fetch-shape",
+      "description": "分别记录方法、User-Agent、Range 和时序形态，用于归因媒体处理器而不保存第三方业务数据。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "page-error-only",
+      "description": "页面报错、加载失败或前端图片请求不能证明服务端发起请求。"
+    },
+    {
+      "id": "reused-callback-path",
+      "description": "重复使用同一路径会混入缓存、重试和历史请求，无法关联当前候选。"
+    },
+    {
+      "id": "unattributed-oast-hit",
+      "description": "无法排除浏览器、扩展、代理或安全扫描器的回调只能标记为未判定。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "服务端远程媒体处理对协议、目标地址、重定向链和出站网络执行验证，并避免客户端可控地址直接进入取回器。",
+    "suspected_missing_control": "媒体处理器接受用户提供的远程地址并从服务端网络发起请求，缺少目标或出站限制。",
+    "impact_boundary": "这是迁移验证契约；外部受控回连最多证明服务端取回器可达，不证明内网访问、云 metadata、凭据泄露、文件读取或代码执行。"
+  },
+  "request_matrix": [
+    {
+      "id": "non-resolving-url",
+      "variant": "negative-control",
+      "auth_context": "same-controlled-context",
+      "mutation": "benign-non-resolving-host",
+      "expected_observation": "建立页面错误、超时与业务失败的无回连基线。"
+    },
+    {
+      "id": "browser-prefetch-control",
+      "variant": "negative-control",
+      "auth_context": "same-controlled-context",
+      "mutation": "unique-path-not-submitted-to-server",
+      "expected_observation": "浏览器、扩展、本地代理和扫描器均不访问该唯一路径。"
+    },
+    {
+      "id": "unique-oast-url",
+      "variant": "candidate-probe",
+      "auth_context": "same-controlled-context",
+      "mutation": "one-new-controlled-oast-path",
+      "expected_observation": "候选请求与唯一回调在时间、路径和请求形态上可关联。"
+    },
+    {
+      "id": "callback-observation",
+      "variant": "readback",
+      "auth_context": "controlled-oast-observer",
+      "mutation": "structural-callback-metadata-only",
+      "expected_observation": "仅保存时间、方法、User-Agent、Range、源类别和相关请求 ID。"
+    }
+  ],
+  "false_positive_filters": [
+    "浏览器、扩展、代理、安全产品或本地预览器访问回调路径时不得归因为服务端。",
+    "页面错误、前端图片加载或业务处理失败不等于服务端回连。",
+    "重复缓存回调、扫描器回放或共享路径命中无法关联当前探针。",
+    "只有一次且缺少路径与时序关联的回调不得升级为已确认 SSRF。"
+  ],
+  "evidence_invariants": [
+    "每个候选探针使用从未暴露给其它组件的独立回调路径。",
+    "除远程 URL 外，方法、路径、认证上下文、请求体和业务对象保持一致。",
+    "不请求内网、云 metadata、第三方真实资产或任何可能产生副作用的目的地址。",
+    "页面观察与 OAST 观察分开记录，服务端归因必须通过预读负控。"
+  ],
+  "stop_conditions": [
+    "首次形成稳定且可归因的服务端回连后停止扩大目的地址。",
+    "无法排除客户端预读、代理重放或缓存时立即停止并降级。",
+    "处理器要求第三方真实资源或可能触发业务写入时停止。"
+  ],
+  "rollback": {
+    "required": false,
+    "method": "只使用受控外部回调端点，不创建目标侧对象；验证结束后停用该次唯一关联标识。",
+    "success_criteria": "没有目标侧状态变化，且回调标识不再用于其它探针。"
+  },
+  "sources": [
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 Blind SSRF Media 家族规定的唯一 OAST 路径、媒体请求形态以及页面错误与服务端回连分离。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

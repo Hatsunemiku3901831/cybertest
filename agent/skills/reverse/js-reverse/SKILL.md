@@ -154,7 +154,7 @@ description: 在使用 js-reverse-mcp 做前端 JavaScript 逆向时使用，适
 
 **上游入口**: `skills/SKILL.md`（总控）、`routing.md`
 **上游备选**:
-- anything-analyzer MCP（端口 23816）的浏览器工具可作为替代或补充
+- `http.capture` provider 的浏览器/HTTP 能力可作为替代或补充；端点由运行时发现
 - jshookmcp 可作为更强的浏览器/CDP/Hook/Network/SourceMap/AST 执行面
 - `reverse-engineering/SKILL.md`（如果目标不是前端 JS）
 
@@ -170,28 +170,14 @@ description: 在使用 js-reverse-mcp 做前端 JavaScript 逆向时使用，适
 
 ## 按需自举（On-Demand Bootstrap）
 
-本 skill 依赖的 MCP 能力可通过统一自举系统自动注册。
+先只读探测 `js.cdp`、`http.capture` 和本机 runner，不因缺少命令自动安装或注册：
 
-### 自动化能力边界
-
-| 能力 | 可自动注册 | 方式 | 说明 |
-|------|-----------|------|------|
-| jshookmcp | ✓ | npm-mcp（npx 启动） | 自动写入 Claude MCP 配置 |
-| anything-analyzer | ✓ | local-http-mcp | 自动注册 + 可自动启动服务 |
-| Node.js | ✓ | winget 安装 | 运行时依赖 |
-
-### 自举方式
-
-```powershell
-# 注册 jshookmcp 到 MCP 配置
-powershell -File "<skill-root>\scripts\bootstrap-reverse.ps1" -Capability @('jshookmcp')
-
-# 注册并启动 anything-analyzer
-powershell -File "<skill-root>\scripts\bootstrap-reverse.ps1" -Capability @('anything-analyzer') -StartServices
+```bash
+python3 tool/detect_capabilities.py --dry-run
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect jshookmcp anything-analyzer
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run jshookmcp anything-analyzer
 ```
 
-### 注意事项
-
-- `jshookmcp` 注册后仍需在 AI 客户端中**启用**该 MCP server 才能调用
-- `anything-analyzer` 需要 pnpm 和项目源码，bootstrap 会自动 clone 并安装依赖
-- 如果 Node.js 未安装，bootstrap 会先通过 winget 安装 Node.js 22
+需要注册时，由用户先启动或选择 provider，再显式传入 MCP 配置目标。
+`anything-analyzer` 的端点通过 `ANYTHING_ANALYZER_MCP_URL` 或 runtime input
+提供；脚本不假设端口、不 clone 项目、不启动服务，也不默认写全局客户端配置。

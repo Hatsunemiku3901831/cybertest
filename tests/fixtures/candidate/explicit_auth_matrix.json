@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "url": "https://public.example.invalid/swagger/index.html",
+      "status_code": 200,
+      "auth_experiment": {
+        "missing_auth": "200",
+        "fixed_invalid_auth": "401",
+        "controlled_auth": "200"
+      }
+    }
+  ]
+}

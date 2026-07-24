@@ -1,0 +1,26 @@
+{
+  "name": "guest-upload-ticket",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "file",
+    "target_types": ["api"],
+    "technologies": ["rest", "object-storage"],
+    "endpoint_traits": ["upload-ticket"],
+    "business_objects": ["file"],
+    "operation_types": ["upload"],
+    "trust_boundaries": ["anonymous_to_storage"],
+    "observed_signals": ["guest_upload", "upload_ticket", "missing_file_constraints"],
+    "suspected_control_gaps": ["file_type_limit", "file_size_limit"],
+    "auth_contexts": ["anonymous"],
+    "evidence_stage": "handler",
+    "available_materials": ["controlled_small_file"],
+    "available_capabilities": ["http.replay"],
+    "excluded_routes": [],
+    "negative_control_results": [],
+    "previous_route_decisions": []
+  },
+  "policy": {"max_safe_validation_level": "test_object", "allowed_operation_types": ["upload"]},
+  "expected": {"route_status": "matched", "top1": "FILE-GUEST-UPLOAD-TICKET-001"}
+}

@@ -2,39 +2,76 @@
 
 本文档汇总仓库内 `tool/` 目录的可复用工具、用途、外部依赖和典型使用方式，方便新环境初始化、GitHub 使用者快速理解工具能力。
 
-## Windows 一键安装
+## 推荐初始化流程
 
-Windows 用户优先使用根目录安装入口：
+先做只读依赖检测和安装计划预览，再选择 profile 安装。`--detect`/`-Detect`
+与 `--dry-run`/`-DryRun` 不安装软件、不访问网络、不写日志，也不修改 PATH。
 
-```powershell
-.\install_windows.cmd
-```
-
-或在 PowerShell 中直接运行：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install_windows.ps1
-```
-
-脚本会优先使用 `winget`、`go install`、`pip` 自动安装可自动化处理的工具；`masscan`、`whatweb`、OWASP ZAP、Burp MCP、FOFA API key 等环境相关组件会在结束摘要中列为人工处理项。需要尝试 Chocolatey 补充安装时可运行：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install_windows.ps1 -InstallChocolatey
-```
-
-## macOS 一键安装
-
-macOS 用户使用 `require/` 目录下的 shell 脚本：
+macOS：
 
 ```bash
-bash require/install_macos.sh
+bash require/install_macos.sh --detect --profile web
+bash require/install_macos.sh --dry-run --profile web
+bash require/install_macos.sh --profile web
 ```
 
-脚本会优先使用 Homebrew、`go install`、`pipx`/`pip` 安装可自动化处理的工具。需要同时安装 OWASP ZAP 这类 GUI/cask 组件时可运行：
+Windows：
+
+```powershell
+.\require\install_windows.cmd -Detect -Profile web
+.\require\install_windows.cmd -DryRun -Profile web
+.\require\install_windows.cmd -Profile web
+```
+
+也可以直接运行 PowerShell 入口：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\require\install_windows.ps1 -Profile web
+```
+
+可用 profile：
+
+| Profile | 用途 |
+|---|---|
+| `minimal` | Python 工具、Git 和基础 HTTP 工作流。 |
+| `web` | Web/API 资产发现、爬取、扫描和候选生成。 |
+| `full` | 保留原一键安装覆盖面，并增加代码、供应链和离线分析工具；也是兼容默认值。 |
+| `reverse` | Android/逆向静态分析和物理设备辅助工作流。 |
+
+profile 的稳定命令清单见 `require/profiles.json`。安装器会优先使用 Homebrew、
+`winget`、`go install` 和 `pipx`/`pip`；平台相关或无法可靠自动安装的组件会进入
+人工处理摘要。
+
+安装器默认只调整当前进程的查找路径，不修改 `~/.zshrc` 或 Windows 用户 PATH。
+确需持久化时必须显式选择：
 
 ```bash
-bash require/install_macos.sh --with-casks
+bash require/install_macos.sh --profile web --update-path
 ```
+
+```powershell
+.\require\install_windows.cmd -Profile web -UpdatePath
+```
+
+原有 `--skip-brew`、`--skip-go-tools`、`--skip-python-tools`、
+`--skip-path-update`、`-SkipWinget`、`-SkipGoTools`、`-SkipPythonTools` 和
+`-NoPathUpdate` 参数继续兼容。GUI/cask 和 Chocolatey 仍需显式启用：
+
+```bash
+bash require/install_macos.sh --profile full --with-casks
+```
+
+```powershell
+.\require\install_windows.cmd -Profile full -InstallChocolatey
+```
+
+安装后使用统一 capability detector 复核运行时能力；默认只输出到终端，不写缓存：
+
+```bash
+python3 tool/detect_capabilities.py --dry-run
+```
+
+需要本地缓存时再显式提供 `--output`；缓存位于 `.cybertest/` 时默认不进入 Git。
 
 ## 基础运行环境
 
@@ -92,7 +129,7 @@ python3 tool/<script>.py --help
 
 | 文件 | 类型 | 用途 | 关键依赖 |
 |---|---|---|---|
-| `tool/scan_pipeline.py` | 编排器 | 串联子域名、DNS、HTTP、TLS、端口、爬取、历史 URL、GF、Nuclei、FFUF、质量门禁和候选队列。支持 `quick`、`full`、`deep`、断点恢复和 dry-run。 | Python 3、多个外部安全工具 |
+| `tool/scan_pipeline.py` | 编排器 | 串联子域名、DNS、HTTP、TLS、端口、爬取、历史 URL、GF、Nuclei、FFUF、候选队列和语义质量门禁；候选先生成，质量门再读取本轮 v2 语义。支持 `quick`、`full`、`deep`、断点恢复和 dry-run。 | Python 3、多个外部安全工具 |
 | `tool/async_task_runner.py` | 编排器 | 后台运行长耗时命令，支持 start/status/wait/list/clean，避免交互超时。 | Python 3 |
 | `tool/_async_utils.py` | 内部库 | 为扫描包装器提供异步启动和状态查询能力。 | Python 3 |
 | `tool/quality_gate.py` | 质量门禁 | 读取扫描管线输出并评估阶段覆盖质量，可输出 JSON/Markdown。 | Python 3 |
@@ -107,8 +144,11 @@ python3 tool/<script>.py --help
 ./tool/scan_pipeline.py --authorized --domain example.com --mode full --dry-run
 python3 tool/async_task_runner.py start --command "nuclei -u https://example.com -jsonl"
 python3 tool/quality_gate.py --pipeline-dir /tmp/codex-scan-pipelines/example
-./tool/bounty_candidate_queue.py --pipeline-dir /tmp/codex-scan-pipelines/example --output-json candidates.json --output-md candidates.md
+./tool/bounty_candidate_queue.py --pipeline-dir /tmp/codex-scan-pipelines/example --enable-tactics --output-json candidates.json --output-md candidates.md
 ```
+
+直接运行候选工具时，`--enable-tactics` 启用 schema v2 和 tactic 绑定；不带该参数仍
+保留 v1 字段与输出兼容。扫描管线会为内部候选阶段启用 v2，再执行语义质量门。
 
 ## 资产发现与暴露面工具
 

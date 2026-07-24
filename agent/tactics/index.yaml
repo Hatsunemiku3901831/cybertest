@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "tactics": [
+    {
+      "id": "AUTH-CUSTOMER-JWT-TO-ADMIN-001",
+      "path": "auth/customer-jwt-to-admin.yaml",
+      "summary": "对管理路由执行缺失、固定错误、受控客户和受控管理令牌最小接受矩阵。",
+      "tags": ["authentication", "authorization", "jwt", "admin"]
+    },
+    {
+      "id": "AUTH-JWT-ACCEPTANCE-MATRIX-001",
+      "path": "auth/jwt-acceptance-matrix.yaml",
+      "summary": "使用缺失、固定错误、受控来源和受控目标令牌建立接受矩阵。",
+      "tags": ["authentication", "jwt", "trust-boundary"]
+    },
+    {
+      "id": "AUTHZ-BOLA-UI-FALSE-POSITIVE-001",
+      "path": "authz/bola-ui-false-positive.yaml",
+      "summary": "用真实 UI 选择器、自身非空基线和权威账号映射过滤 BOLA 误报。",
+      "tags": ["authorization", "bola", "browser"]
+    },
+    {
+      "id": "AUTHZ-EXPORT-LOG-FIELD-BOUNDARY-001",
+      "path": "authz/export-log-field-boundary.yaml",
+      "summary": "比较正常读取、导出 DTO 和日志中的字段集合，识别字段级权限旁路。",
+      "tags": ["authorization", "export", "audit-log", "field-boundary"]
+    },
+    {
+      "id": "AUTHZ-MASS-ASSIGNMENT-001",
+      "path": "authz/mass-assignment.yaml",
+      "summary": "比较 UI 允许字段与服务端对象字段，逐字段验证敏感字段批量赋值。",
+      "tags": ["authorization", "mass-assignment", "write"]
+    },
+    {
+      "id": "FILE-GUEST-UPLOAD-TICKET-001",
+      "path": "file/guest-upload-ticket.yaml",
+      "summary": "对正常、完全缺省和错误文件约束执行游客上传票据差分。",
+      "tags": ["file", "upload", "guest", "object-storage"]
+    },
+    {
+      "id": "INJECTION-ORDER-BY-BOOLEAN-ORACLE-001",
+      "path": "injection/order-by-boolean-oracle.yaml",
+      "summary": "用稳定双排序指纹和 true、false、null 三态验证 ORDER BY 表达式求值。",
+      "tags": ["injection", "sql", "order-by", "oracle"]
+    },
+    {
+      "id": "INTEGRATION-BLIND-SSRF-MEDIA-001",
+      "path": "integration/blind-ssrf-media.yaml",
+      "summary": "用唯一回调路径和浏览器预读负控验证媒体处理服务端请求。",
+      "tags": ["ssrf", "media", "oast", "differential"]
+    },
+    {
+      "id": "INTEGRATION-THIRD-PARTY-SECRET-VALIDATION-001",
+      "path": "integration/third-party-secret-validation.yaml",
+      "summary": "固定请求，对候选和等长错误 Secret 执行官方只读或 validate-only 差分。",
+      "tags": ["credential", "third-party", "secret", "validation"]
+    },
+    {
+      "id": "INTEGRATION-WEBSOCKET-PATH-IDENTITY-001",
+      "path": "integration/websocket-path-identity.yaml",
+      "summary": "用随机身份、受控身份和同身份双连接区分 WebSocket 路径身份信任。",
+      "tags": ["websocket", "identity", "routing", "differential"]
+    }
+  ]
+}

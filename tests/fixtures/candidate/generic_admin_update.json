@@ -1,0 +1,9 @@
+{
+  "results": [
+    {
+      "url": "https://api.example.invalid/admin/user/update?userId=1001",
+      "method": "POST",
+      "status_code": 200
+    }
+  ]
+}

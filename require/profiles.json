@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "default_profile": "full",
+  "profiles": {
+    "minimal": {
+      "description": "Run the repository's Python utilities and basic HTTP workflows.",
+      "commands": [
+        "git",
+        "python",
+        "curl"
+      ]
+    },
+    "web": {
+      "description": "Authorized Web/API discovery, crawling, scanning, and candidate generation.",
+      "commands": [
+        "git",
+        "python",
+        "curl",
+        "node",
+        "go",
+        "nmap",
+        "rustscan",
+        "subfinder",
+        "dnsx",
+        "httpx",
+        "tlsx",
+        "naabu",
+        "katana",
+        "nuclei",
+        "ffuf",
+        "waybackurls",
+        "arjun",
+        "wafw00f",
+        "whatweb",
+        "sqlmap",
+        "dalfox",
+        "kr",
+        "zap-baseline.py"
+      ]
+    },
+    "full": {
+      "description": "The Web/API profile plus code, supply-chain, port, and offline analysis tools.",
+      "commands": [
+        "git",
+        "python",
+        "curl",
+        "node",
+        "go",
+        "nmap",
+        "rustscan",
+        "masscan",
+        "hashcat",
+        "trivy",
+        "gitleaks",
+        "semgrep",
+        "sqlmap",
+        "wafw00f",
+        "whatweb",
+        "subfinder",
+        "dnsx",
+        "httpx",
+        "tlsx",
+        "naabu",
+        "katana",
+        "nuclei",
+        "ffuf",
+        "waybackurls",
+        "arjun",
+        "dalfox",
+        "kr",
+        "zap-baseline.py"
+      ]
+    },
+    "reverse": {
+      "description": "Static and physical-device-assisted Android/reverse-engineering workflows.",
+      "commands": [
+        "git",
+        "python",
+        "curl",
+        "java",
+        "adb",
+        "jadx",
+        "apktool",
+        "r2",
+        "frida"
+      ]
+    }
+  }
+}

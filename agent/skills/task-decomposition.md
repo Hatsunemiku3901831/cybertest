@@ -127,14 +127,76 @@ Goal
 
 ### 授权安全测试任务
 
-```text
-1. 确认授权范围、目标、禁止动作和成功标准。
-2. 做轻量侦察和服务识别。
-3. 根据发现选择少量高价值验证路径。
-4. 对每个发现保存请求、响应、影响和复现条件。
-5. 停止在验证边界内，不扩大影响。
-6. 输出证据化报告和修复建议。
-```
+赏金/SRC/渗透测试任务采用 4 阶段收敛模型。每个阶段完成后更新 `notes/log.md`，遇到阻塞立即写入 `outputs/agent-handoff-pentest-status.md`。
+
+#### Phase 1: 入口确认（Intake）
+
+1. 从用户输入或 `inputs/scope.md` 确认授权范围（通配符、排除项）。
+2. 确认停止条件：发现新高危即停止 或 所有方向材料阻塞即停止。
+3. 搜索公开赏金规则页面；未找到则以用户给定范围和 `漏洞评级.md` 为准。
+4. 读取 `security-testing.md`、`hack-skill.md`、`handoff-docs.md`、`漏洞评级.md`；初始化任务归档目录。
+
+**产出**：`inputs/scope.md`、`notes/loaded-skills.md`。
+
+> 读取：`security-testing.md`、`handoff-docs.md`
+
+#### Phase 2: 信息收集（Recon）
+
+1. 运行 `scan_pipeline.py --mode quick` 或等价手工基线。
+2. 执行 `search.md` 第 6.3.1 节全部 5 个被动源穷举（crt.sh / RapidDNS / urlscan / Wayback CDX / Common Crawl）。
+3. 从 JS/前端/App 静态资源提取域名和 API 端点 → `outputs/js-api-inventory.json`。
+4. 执行 `search.md` 第 6.3.2 节覆盖差分检查：确认每个已知域名都已进入探测或标记阻塞。
+5. DOH 可信解析建立 DNS 基线，规避 Fake-IP。
+6. 被动新增域名按语义分批消耗：
+   - 第一批：高风险语义（SSO/auth/api/pay/op/jira/fileupload/virus/uncover/callback） → 根+15 路径。
+   - 第二批：次级语义（driver/interface/antivirus/internal 命名） → 根+深度样本。
+   - 第三批：剩余 → 根+6 路径最小探测。
+   - 追加批：urlscan/Wayback 新增认证/回调入口 → 专项复核。
+7. CNAME/子域接管风险检查：解析 CNAME 记录，排除 CDN/WAF/已知服务指向，对非典型样本实时 CNAME + 根路径复核，排除 GitHub Pages / Heroku / Netlify / Vercel / AWS S3 / Azure 等可接管指纹。
+8. 多主机返回同字节数/同 SHA1 206/200 页面时，只做一次完整页面下载 + SHA1 对比，确认后整组标记 `static_fallback`，不再逐台深测。
+9. 生成 `outputs/bounty-candidates.json/md`，所有候选按 P0/P1/P2/P3 分级。
+
+**产出**：`outputs/asset-inventory-detailed.md`、`outputs/asset-inventory.json`、`outputs/js-api-inventory.json`、`outputs/bounty-candidates.json`。
+
+> 发现新域名 → 回到 Phase 2 步骤 3-6 补充探测。发现新 API host → 回到存活+指纹。
+> 读取：`search.md`
+
+#### Phase 3: 高危优先挖掘（Hunt）
+
+按 P0 → P1 → P2 → P3 顺序消耗候选队列。每个方向完成一轮只读边界后记录结论。
+
+1. P0 优先：SQLi、SSRF、账号接管、OAuth/OIDC/SAML、IDOR/BOLA、文件链、API 网关绕过、后台未授权、测试环境连生产数据、云凭据泄露。
+2. P1 其次：开放平台签名边界、移动端签名 API、AI/IM 会话越权、对象存储公开、认证回调跳转。
+3. 每轮只做**低频只读**：GET/HEAD/OPTIONS、空参数、假对象 ID、假凭据、`example.com` 边界 URL。
+4. 验证闭环后才进入副作用操作（短信/上传/写入），且只做最小次数，成功一次即停止。
+5. 无法闭合的候选标记 `blocked_need_material`，**不直接归档失败**。写清缺失材料和拿到后的第一步验证动作。
+6. 每条发现立即执行 `漏洞评级.md` 评级复核，写入 `vulnerability-archive.md` 和 `outputs/vulnerability-archive.json`。
+7. 确认新高危 → 立即停止扩大，生成独立 PoC 和报告草稿。
+
+**产出**：`vulnerability-archive.md`、`outputs/vulnerability-archive.json`、更新 `outputs/bounty-candidates.json`。
+
+> 读取：`hack-skill.md`、`security-testing.md`、`漏洞评级.md`
+
+#### Phase 4: 收尾与交接（Closure）
+
+1. 所有低/中危信号尝试闭合到业务影响；闭合失败的按信息项或 `no_impact` 归档。
+2. 过滤误报并记录误报边界（为何不是漏洞、下次如何识别）。
+3. 按 `handoff-docs.md` 规范绘制 Mermaid 攻击面拓扑图，置于 `## 当前风险索引` 上方。
+4. 更新 `outputs/agent-handoff-pentest-status.md`：当前状态、已做/未做、阻塞材料清单、优先下一步、失败路径禁止重复清单。
+5. 写入 `retrospective.md`（有效路径、无效路径、可复用经验、工具改进建议）。
+6. 匿名化复盘摘要到 `agent/retrospectives/index.md`。
+
+**产出**：`outputs/agent-handoff-pentest-status.md`、`retrospective.md`、Mermaid 攻击面拓扑图。
+
+> 读取：`handoff-docs.md`、`漏洞评级.md`
+
+#### 材料阻塞处理
+
+当所有 P0/P1 候选均标记 `blocked_need_material` 且无剩余高收益方向时：
+
+- 停止主动探测，不重复已穷尽的路径。
+- 在交接文档中写明：阻塞点、缺失材料、拿到材料后的验证序列（按 P0→P1 编号）。
+- 明确告诉用户：为什么停止、缺什么、下一步需要什么配合。
 
 ## 动态重规划
 

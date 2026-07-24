@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "id": "FILE-GUEST-UPLOAD-TICKET-001",
+  "version": 1,
+  "title": "游客上传票据缺省约束差分",
+  "summary": "固定租户、用途和文件元数据，对完全缺省请求、正常文件参数和错误参数票据做单变量差分。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["api", "spa", "mobile-api"],
+    "technologies": ["rest", "multipart", "object-storage"],
+    "endpoint_traits": ["upload-ticket", "temporary-upload", "public-preview"],
+    "observed_signals": ["guest_upload", "upload_ticket", "missing_file_constraints", "public_object_url"],
+    "business_objects": ["file", "upload-ticket", "object"],
+    "operation_types": ["upload"],
+    "trust_boundaries": ["anonymous_to_storage", "client_to_object_storage"],
+    "evidence_stages": ["signal", "route", "handler", "state_change", "impact"]
+  },
+  "control_gap": {
+    "category": "file",
+    "operation_type": "upload",
+    "trust_boundary": "anonymous_to_storage",
+    "expected_controls": ["file_type_limit", "file_size_limit", "tenant_binding", "purpose_binding", "ticket_expiry"],
+    "suspected_missing_controls": ["file_type_limit", "file_size_limit", "purpose_binding"]
+  },
+  "prerequisites": ["使用一个自有、无敏感内容的小文件。", "固定租户、目录、用途和其余请求字段。"],
+  "material_requirements": [
+    {"id": "controlled_small_file", "description": "可删除的自有小文件", "required": true},
+    {"id": "controlled_preview_context", "description": "受控上传和预览上下文", "required": false}
+  ],
+  "request_matrix": [
+    {"id": "normal-ticket", "role": "positive_control", "description": "使用正常文件名、类型和大小参数签发票据。"},
+    {"id": "missing-constraints", "role": "candidate_probe", "description": "仅移除文件类型和大小约束参数。"},
+    {"id": "invalid-constraints", "role": "negative_control", "description": "使用明确无效的文件约束，识别统一签发响应。"},
+    {"id": "minimal-upload-readback", "role": "readback", "description": "仅在票据差分成立时上传一个小文件并精确回读。"},
+    {"id": "delete-test-object", "role": "rollback", "description": "删除测试对象并确认精确 URL 不再可读。"}
+  ],
+  "expected_observations": ["缺省票据若放宽约束，应与正常票据的限制字段产生稳定差分。", "只有最小文件成功写入且精确对象可回读，才证明即时写入。"],
+  "evidence_invariants": ["每次只改变文件约束字段。", "上传前后文件哈希一致。", "不枚举目录或访问非测试对象。"],
+  "false_positive_filters": ["票据签发成功但实际上传被服务端约束拒绝。", "公开预览 URL 仅来自客户端拼接。", "临时对象可读不等于持久化或代码执行。"],
+  "safe_validation_level": "test_object",
+  "sensitivity_policy": "task",
+  "readonly_fallback": true,
+  "stop_conditions": ["一个自有小文件完成写入和精确回读后停止。", "发现真实用户对象或无法删除测试对象时立即停止。"],
+  "rollback": {"required": true, "steps": ["删除测试对象。", "复核精确对象 URL 不再返回测试内容。"]},
+  "root_cause_family": "guest_upload_ticket_fail_open",
+  "affected_instance_key_fields": ["scheme_host_port", "route_template", "tenant", "purpose"],
+  "rating_boundary": "最多证明匿名或低权限即时写入及公开读取；持久化、覆盖、代码执行需独立证据。",
+  "do_not_overclaim": "不得把票据存在、tmp 标志或危险后缀上传写成持久化控制、覆盖或 RCE。",
+  "reopen_conditions": ["取得可删除测试文件和受控预览上下文。", "发现新的租户、目录或用途约束。"],
+  "required_capabilities": [
+    {"id": "http.replay", "required": true, "fallbacks": ["cli.http"]}
+  ],
+  "source_cases": [
+    "CASE-FILE-GUEST-UPLOAD-TICKET-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": ["upload_rejects_missing_constraints", "preview_requires_authorization"],
+  "next_discriminating_action": "固定其余字段，对正常、完全缺省和明确错误文件约束执行三态票据差分。",
+  "reroute_triggers": ["票据字段无差分。", "实际上传执行了独立服务端约束。", "对象存储权限或租户绑定出现新证据。"],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

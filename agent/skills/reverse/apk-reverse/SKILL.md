@@ -88,7 +88,7 @@ pwsh -File "<skill-root>\apk-reverse\scripts\frida-run.ps1" -Usb -Spawn -Package
 
 ```powershell
 pwsh -File "<skill-root>\apk-reverse\scripts\rebuild-sign-install.ps1" -ProjectDir "C:\work\apktool_out" -Clean
-pwsh -File "<skill-root>\apk-reverse\scripts\rebuild-sign-install.ps1" -ProjectDir "C:\work\apktool_out" -Install -Reinstall -DeviceSerial "127.0.0.1:7555"
+pwsh -File "<skill-root>\apk-reverse\scripts\rebuild-sign-install.ps1" -ProjectDir "C:\work\apktool_out" -Install -Reinstall -DeviceSerial "<physical-device-serial>"
 ```
 
 说明：
@@ -253,7 +253,7 @@ apktool b apktool_out -o rebuilt.apk
 或者直接用脚本闭环：
 
 ```powershell
-pwsh -File "<skill-root>\apk-reverse\scripts\rebuild-sign-install.ps1" -ProjectDir "apktool_out" -Install -Reinstall -DeviceSerial "127.0.0.1:7555"
+pwsh -File "<skill-root>\apk-reverse\scripts\rebuild-sign-install.ps1" -ProjectDir "apktool_out" -Install -Reinstall -DeviceSerial "<physical-device-serial>"
 ```
 
 说明：
@@ -350,28 +350,14 @@ frida -U -f com.example.app -l hook.js
 
 ## 按需自举（On-Demand Bootstrap）
 
-本 skill 的入口脚本已接入统一自举系统。缺少工具时不会直接报错，而是自动尝试安装。
+缺失工具先只读探测；APK 子脚本不得自行触发安装：
 
-### 自动化能力边界
+```bash
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --detect jadx apktool adb frida
+bash agent/skills/reverse/scripts/bootstrap-reverse.sh --dry-run jadx apktool adb frida
+```
 
-| 工具 | 可自动安装 | 安装方式 | 说明 |
-|------|-----------|---------|------|
-| jadx | ✓ | GitHub Release ZIP | 自动下载解压到 `%USERPROFILE%\Tools\jadx\` |
-| apktool | ✓ | GitHub Release JAR + wrapper | 自动下载 jar 并生成 bat 到 `%USERPROFILE%\Tools\apktool\` |
-| frida / frida-ps | ✓ | pip install frida-tools | 需要 Python 已安装 |
-| adb | ✓ | winget / fallback path | 自动安装 Android Platform-Tools |
-| zipalign | ✗ | 需手动安装 Android Build-Tools | `sdkmanager "build-tools;35.0.0"` |
-| apksigner | ✗ | 需手动安装 Android Build-Tools | 同上 |
-
-### 自举触发点
-
-- `scripts/decode.ps1`：缺 jadx 或 apktool 时自动调用 `bootstrap-reverse.ps1`
-- `scripts/rebuild-sign-install.ps1`：缺 adb 或 apktool 时自动调用 bootstrap
-- `scripts/frida-run.ps1`：当前仍为手动检查（frida 通常已通过 pip 安装）
-
-### 自举失败时
-
-如果自动安装失败，脚本会抛出明确错误并附带手动安装链接。常见原因：
-- 网络不通（GitHub API / PyPI 不可达）
-- winget 不可用（Windows 版本过低）
-- Java 未安装（apktool 依赖 JDK）
+只有用户显式执行 `--install` 时，核心工具才会委托给 `reverse` profile 的平台
+安装器。`zipalign`、`apksigner`、商业工具及平台特定组件仍按实际 SDK/厂商方式
+准备。Android 动态分析只连接 `adb devices` 状态为 `device` 的物理设备；没有
+真实设备时保持静态分析并标记 `[PENDING_RETEST: REAL_ANDROID_REQUIRED]`。

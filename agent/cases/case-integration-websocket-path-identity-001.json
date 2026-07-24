@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "id": "CASE-INTEGRATION-WEBSOCKET-PATH-IDENTITY-001",
+  "title": "WebSocket 路径身份与业务帧路由边界",
+  "summary": "匿名迁移案例契约：离线恢复握手和消息结构后，以随机身份、受控身份和同随机身份双连接区分匿名升级、连接替换与真实业务路由；它不代表真实目标或命令执行结果。",
+  "scene": "websocket-path-identity-routing-contract",
+  "target_type": [
+    "mobile-api",
+    "websocket"
+  ],
+  "technology": [
+    "json",
+    "websocket"
+  ],
+  "business_object": [
+    "message",
+    "peer",
+    "terminal"
+  ],
+  "operation_type": [
+    "read",
+    "subscribe"
+  ],
+  "trust_boundary": [
+    "anonymous-to-peer-identity",
+    "path-identity-to-business-channel"
+  ],
+  "observed_signal": [
+    "anonymous-protocol-upgrade",
+    "identity-in-websocket-path",
+    "server-business-frame"
+  ],
+  "root_cause_family": "websocket_path_identity_trust",
+  "evidence_mode": [
+    "controlled-peer-differential",
+    "protocol-capture",
+    "server-frame-correlation"
+  ],
+  "required_material": [
+    "controlled-peer-identity",
+    "offline-handshake-and-frame-structure",
+    "random-high-entropy-identity"
+  ],
+  "matched_tactics": [
+    "INTEGRATION-WEBSOCKET-PATH-IDENTITY-001"
+  ],
+  "effective_paths": [
+    {
+      "id": "offline-protocol-recovery",
+      "description": "先离线恢复 URI、请求头、首帧、心跳、消息签名和 ACK 结构，避免动态盲发。"
+    },
+    {
+      "id": "random-controlled-dual-matrix",
+      "description": "分别连接高熵随机身份、受控身份和同一随机身份双连接，只改变路径身份。"
+    },
+    {
+      "id": "exact-server-frame-correlation",
+      "description": "只有双方精确匹配的服务端业务帧才支持身份到业务通道路由，ACK 另行记录。"
+    }
+  ],
+  "ineffective_paths": [
+    {
+      "id": "anonymous-101-only",
+      "description": "匿名协议升级只证明 WebSocket 路由可达，不证明身份认证、订阅授权或业务能力。"
+    },
+    {
+      "id": "heartbeat-or-local-echo",
+      "description": "心跳、握手响应和客户端本地回显不属于服务端真实业务帧。"
+    },
+    {
+      "id": "static-handler-only",
+      "description": "静态代码存在危险处理器不能替代服务端路由、ACK 和独立业务执行证据。"
+    }
+  ],
+  "control_gap": {
+    "expected_control": "服务端认证连接主体、授权路径身份与频道绑定，并校验消息完整性和业务 ACK。",
+    "suspected_missing_control": "路径中的身份值直接用于连接注册或消息路由，缺少主体认证和频道授权。",
+    "impact_boundary": "这是迁移验证契约；匿名 101、心跳、同身份连接替换和 ACK 均不等于真实业务执行，更不能外推远程命令执行。"
+  },
+  "request_matrix": [
+    {
+      "id": "random-identity",
+      "variant": "negative-control",
+      "auth_context": "anonymous-controlled-client",
+      "mutation": "high-entropy-random-path-identity",
+      "expected_observation": "记录是否仅完成协议升级、心跳或空闲连接。"
+    },
+    {
+      "id": "controlled-identity",
+      "variant": "candidate-probe",
+      "auth_context": "controlled-peer-context",
+      "mutation": "controlled-path-identity-only",
+      "expected_observation": "等待一个安全、可归因的服务端业务帧，不发送危险消息。"
+    },
+    {
+      "id": "same-random-dual",
+      "variant": "negative-control",
+      "auth_context": "two-controlled-clients",
+      "mutation": "same-random-identity-on-two-connections",
+      "expected_observation": "区分连接替换、fanout、单连接限制和真正的身份认证。"
+    },
+    {
+      "id": "controlled-business-frame",
+      "variant": "readback",
+      "auth_context": "controlled-peer-context",
+      "mutation": "observe-one-safe-server-frame",
+      "expected_observation": "只有服务端帧与受控双方身份和预期消息族精确匹配时支持真实路由。"
+    },
+    {
+      "id": "ack-boundary",
+      "variant": "negative-control",
+      "auth_context": "controlled-peer-context",
+      "mutation": "observe-ack-without-dangerous-handler",
+      "expected_observation": "ACK 接受与独立业务状态变化分开记录，不由 ACK 外推执行结果。"
+    }
+  ],
+  "false_positive_filters": [
+    "匿名 101、握手成功、心跳或连接保持不证明身份认证缺失的业务影响。",
+    "客户端本地回显、广播测试帧或无法确定方向的消息不属于服务端业务路由证据。",
+    "同身份双连接发生替换只说明连接注册语义，不等于接管受控外身份。",
+    "静态危险处理器或 ACK 存在不能外推命令执行，必须有独立业务观察。"
+  ],
+  "evidence_invariants": [
+    "只使用高熵随机身份和用户控制的测试身份，不使用任何真实第三方身份。",
+    "三种连接除路径身份和连接数量外，URI 模板、请求头、首帧和时序保持一致。",
+    "协议升级、心跳、服务端业务帧、ACK 和业务状态变化分层记录。",
+    "不发送危险命令；首次出现精确受控业务帧即停止扩大。"
+  ],
+  "stop_conditions": [
+    "首次观察到精确匹配受控身份的服务端业务帧后立即停止。",
+    "出现非受控身份、非测试业务消息或危险处理器调用前立即断开。",
+    "只能观察到 101、心跳或无法归因的本地回显时停止并降级。"
+  ],
+  "rollback": {
+    "required": false,
+    "method": "关闭所有测试连接，停止受控客户端，并复核没有持续会话或排队消息。",
+    "success_criteria": "所有测试连接已关闭、没有持续订阅、没有发送危险消息或改变业务状态。"
+  },
+  "sources": [
+    {
+      "source_alias": "upgrade-plan-case-family",
+      "relative_path": "CYBERTEST-CAPABILITY-UPGRADE-PLAN.md",
+      "sha256": "39646742f5eae816f44db758ef34b51d2e8472e3579ced6943d3f0f3cf247203",
+      "selection": "使用 WebSocket Path Identity 家族规定的随机身份、受控身份、同身份双连接、真实业务帧和 ACK 边界。"
+    }
+  ],
+  "anonymization_check": {
+    "status": "passed",
+    "checked_on": "2026-07-24",
+    "target_identifiers_removed": true,
+    "replayable_secrets_removed": true,
+    "personal_paths_removed": true,
+    "placeholder_only": true,
+    "scanner": "tool/scan_reusable_knowledge_leaks.py"
+  }
+}

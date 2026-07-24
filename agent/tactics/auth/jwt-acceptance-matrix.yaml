@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0",
+  "id": "AUTH-JWT-ACCEPTANCE-MATRIX-001",
+  "version": 1,
+  "title": "JWT 跨信任边界接受矩阵",
+  "summary": "固定同一路由和请求体，对缺失、固定错误、受控来源、受控目标令牌及 Header 位置做单变量差分。",
+  "status": "draft",
+  "triggers": {
+    "target_types": ["api", "admin", "mobile-api"],
+    "technologies": ["jwt", "rest", "graphql"],
+    "endpoint_traits": ["protected-route", "admin-route", "paginated-list"],
+    "observed_signals": [
+      "customer_jwt",
+      "cross_environment_token",
+      "admin_route",
+      "header_position",
+      "token_audience_mismatch"
+    ],
+    "business_objects": ["member", "user", "admin-resource"],
+    "operation_types": ["read", "write"],
+    "trust_boundaries": [
+      "customer_to_admin",
+      "source_environment_to_target_environment",
+      "user_to_admin"
+    ],
+    "evidence_stages": ["signal", "route", "handler", "business_logic", "object_read"]
+  },
+  "control_gap": {
+    "category": "authentication",
+    "operation_type": "read",
+    "trust_boundary": "token_issuer_to_protected_resource",
+    "expected_controls": [
+      "signature_validation",
+      "issuer_validation",
+      "audience_validation",
+      "role_authorization",
+      "header_position_binding"
+    ],
+    "suspected_missing_controls": [
+      "issuer_validation",
+      "audience_validation",
+      "role_authorization",
+      "header_position_binding"
+    ]
+  },
+  "prerequisites": [
+    "固定同一路由、方法、参数、分页大小和请求体。",
+    "仅使用受控测试身份产生的令牌。"
+  ],
+  "material_requirements": [
+    {
+      "id": "controlled_source_token",
+      "description": "受控来源环境或低权限身份令牌",
+      "required": true
+    },
+    {
+      "id": "controlled_target_token",
+      "description": "受控目标环境或目标权限身份令牌",
+      "required": false
+    }
+  ],
+  "request_matrix": [
+    {
+      "id": "missing-auth",
+      "role": "baseline",
+      "description": "不发送任何认证材料，记录协议级响应。"
+    },
+    {
+      "id": "fixed-invalid-auth",
+      "role": "negative_control",
+      "description": "发送固定格式错误且不可验证的令牌。"
+    },
+    {
+      "id": "controlled-source-token",
+      "role": "candidate_probe",
+      "description": "发送受控来源或低权限令牌，保持其余字段不变。"
+    },
+    {
+      "id": "controlled-target-token",
+      "role": "positive_control",
+      "description": "如有受控目标身份，确认同一路由的正常认证基线。"
+    },
+    {
+      "id": "header-position-control",
+      "role": "negative_control",
+      "description": "在标准 Bearer 与应用专用 Header 位置间做单变量对照。"
+    }
+  ],
+  "expected_observations": [
+    "缺失和固定错误令牌应被拒绝。",
+    "候选令牌与固定错误令牌必须产生可重复差分，才说明令牌被处理。",
+    "进入路由或业务逻辑不等于已证明对象读取或管理权限。"
+  ],
+  "evidence_invariants": [
+    "每个变体使用相同方法、路径、参数、请求体和分页大小。",
+    "分别记录协议状态、业务码、响应结构和实际抽样行数。",
+    "令牌原值不进入 tactic、fixture 或可复用日志。"
+  ],
+  "false_positive_filters": [
+    "固定错误令牌与候选令牌返回同形公共错误页时否定接受假设。",
+    "网关统一 200、SPA fallback 或匿名公共数据不得视为 JWT 被接受。",
+    "仅解析 JWT claims 不能证明服务端完成验签。"
+  ],
+  "safe_validation_level": "readonly",
+  "sensitivity_policy": "zero_raw_value",
+  "readonly_fallback": true,
+  "stop_conditions": [
+    "首次证明受控来源令牌可读取一个最小受保护对象后停止扩大。",
+    "发现令牌已过期、样本身份不受控或响应不可区分时停止。",
+    "出现真实个人数据前停止并缩小到结构和数量证据。"
+  ],
+  "rollback": {
+    "required": false,
+    "steps": []
+  },
+  "root_cause_family": "jwt_trust_boundary_validation",
+  "affected_instance_key_fields": [
+    "target_environment",
+    "service",
+    "route_template",
+    "source_token_class",
+    "required_role"
+  ],
+  "rating_boundary": "只读矩阵最多证明认证或授权边界缺陷；最终等级取决于实际受保护对象和业务影响。",
+  "do_not_overclaim": "不得把令牌解析、路由可达或统一业务错误写成已取得管理权限或批量数据。",
+  "reopen_conditions": [
+    "获得新鲜受控来源令牌。",
+    "获得目标环境正控身份。",
+    "发现新的 Header 位置或独立受保护路由。"
+  ],
+  "required_capabilities": [
+    {
+      "id": "http.replay",
+      "required": true,
+      "fallbacks": ["cli.http"]
+    }
+  ],
+  "source_cases": [
+    "CASE-AUTH-CUSTOMER-JWT-ADMIN-001"
+  ],
+  "historical_validation_count": 0,
+  "exclusion_signals": [
+    "candidate_and_invalid_token_same_shape",
+    "public_route_confirmed"
+  ],
+  "next_discriminating_action": "对同一路由执行缺失认证、固定错误令牌和受控来源令牌三态差分。",
+  "reroute_triggers": [
+    "固定错误令牌与候选令牌同形。",
+    "发现响应来自公共路由或 SPA fallback。",
+    "发现令牌受众、签发者或 Header 位置的新证据。"
+  ],
+  "supporting_skills": ["agent/skills/hack-skill.md"]
+}

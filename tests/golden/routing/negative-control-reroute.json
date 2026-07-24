@@ -1,0 +1,40 @@
+{
+  "name": "negative-control-reroute",
+  "context": {
+    "schema_version": "1.0",
+    "task_kind": "security-testing",
+    "phase": "validation",
+    "category": "authentication",
+    "target_types": ["api", "admin"],
+    "technologies": ["jwt", "rest"],
+    "endpoint_traits": ["admin-route"],
+    "business_objects": ["member"],
+    "operation_types": ["read"],
+    "trust_boundaries": ["customer_to_admin"],
+    "observed_signals": ["customer_jwt", "admin_route", "header_position"],
+    "suspected_control_gaps": ["audience_validation", "role_authorization"],
+    "auth_contexts": ["controlled-customer"],
+    "evidence_stage": "route",
+    "available_materials": ["controlled_source_token", "controlled_customer_token"],
+    "available_capabilities": ["http.replay"],
+    "excluded_routes": [],
+    "negative_control_results": [
+      {
+        "tactic_id": "AUTH-JWT-ACCEPTANCE-MATRIX-001",
+        "outcome": "same_shape",
+        "evidence_ref": "EV-NEGATIVE-CONTROL"
+      }
+    ],
+    "previous_route_decisions": ["RD-PRIOR"]
+  },
+  "policy": {
+    "max_safe_validation_level": "readonly",
+    "allowed_operation_types": ["read"]
+  },
+  "expected": {
+    "route_status": "matched",
+    "top1": "AUTH-CUSTOMER-JWT-TO-ADMIN-001",
+    "excluded_tactic": "AUTH-JWT-ACCEPTANCE-MATRIX-001",
+    "excluded_code": "negative_control_rejected"
+  }
+}
